@@ -4,7 +4,9 @@
 
 .DESCRIPTION
     Provides COM automation of Microsoft Excel workbooks (.xlsx/.xlsm/.xlsb/.xls).
-    43 public functions for workbook, worksheet, table, formatting, and metadata operations.
+    84 public functions for workbook, worksheet, table, formatting, metadata,
+    filter/sort, conditional format, data validation, view, hyperlink, clipboard,
+    print, image/shape, pivot table, chart, import, and sparkline operations.
     No MCP server needed — AI agents call functions directly via terminal.
 
     Usage:

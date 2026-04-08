@@ -40,13 +40,13 @@ Describe 'ExcelPOSH Module' {
             Get-Module ExcelPOSH | Should -Not -BeNullOrEmpty
         }
 
-        It 'Module version is 1.0.0' {
-            (Get-Module ExcelPOSH).Version.ToString() | Should -Be '1.0.0'
+        It 'Module version is 2.0.0' {
+            (Get-Module ExcelPOSH).Version.ToString() | Should -Be '2.0.0'
         }
 
-        It 'Exports exactly 43 public functions' {
+        It 'Exports exactly 84 public functions' {
             $exported = (Get-Module ExcelPOSH).ExportedFunctions.Keys
-            $exported.Count | Should -Be 43
+            $exported.Count | Should -Be 84
         }
     }
 
@@ -82,7 +82,36 @@ Describe 'ExcelPOSH Module' {
             # MetadataOps (8)
             'Get-ExcelDocumentProperty', 'Set-ExcelDocumentProperty',
             'Get-ExcelConnection', 'Get-ExcelProtection', 'Set-ExcelProtection',
-            'Get-ExcelComment', 'Set-ExcelComment', 'Get-ExcelTip'
+            'Get-ExcelComment', 'Set-ExcelComment', 'Get-ExcelTip',
+            # FilterSortOps (4)
+            'Set-ExcelAutoFilter', 'Remove-ExcelAutoFilter', 'Sort-ExcelRange',
+            'Get-ExcelAutoFilter',
+            # ConditionalFormatOps (4)
+            'Add-ExcelConditionalFormat', 'Get-ExcelConditionalFormat',
+            'Remove-ExcelConditionalFormat', 'Clear-ExcelConditionalFormat',
+            # DataValidationOps (3)
+            'Set-ExcelDataValidation', 'Get-ExcelDataValidation',
+            'Remove-ExcelDataValidation',
+            # ViewOps (6)
+            'Set-ExcelFreezePane', 'Get-ExcelFreezePane',
+            'Set-ExcelSheetVisibility', 'Get-ExcelSheetVisibility',
+            'Set-ExcelGrouping', 'Set-ExcelOutlineLevel',
+            # HyperlinkOps (3)
+            'Set-ExcelHyperlink', 'Get-ExcelHyperlink', 'Remove-ExcelHyperlink',
+            # ClipboardOps (3)
+            'Copy-ExcelRange', 'Replace-ExcelValue', 'Move-ExcelRange',
+            # PrintOps (3)
+            'Set-ExcelPageSetup', 'Get-ExcelPageSetup', 'Export-ExcelToPdf',
+            # ImageShapeOps (3)
+            'Add-ExcelImage', 'Get-ExcelShape', 'Remove-ExcelShape',
+            # PivotTableOps (3)
+            'New-ExcelPivotTable', 'Get-ExcelPivotTable', 'Update-ExcelPivotTable',
+            # ChartOps (4)
+            'New-ExcelChart', 'Get-ExcelChart', 'Set-ExcelChart', 'Export-ExcelChart',
+            # ImportOps (2)
+            'Import-ExcelCsv', 'Import-ExcelText',
+            # SparklineOps (3)
+            'Add-ExcelSparkline', 'Get-ExcelSparkline', 'Remove-ExcelSparkline'
         ) {
             $script:exported | Should -Contain $_
         }
@@ -136,6 +165,54 @@ Describe 'ExcelPOSH Module' {
 
         It 'Public/MetadataOps.ps1 exists' {
             Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\MetadataOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/FilterSortOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\FilterSortOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/ConditionalFormatOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\ConditionalFormatOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/DataValidationOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\DataValidationOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/ViewOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\ViewOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/HyperlinkOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\HyperlinkOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/ClipboardOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\ClipboardOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/PrintOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\PrintOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/ImageShapeOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\ImageShapeOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/PivotTableOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\PivotTableOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/ChartOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\ChartOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/ImportOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\ImportOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/SparklineOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\SparklineOps.ps1') | Should -BeTrue
         }
     }
 

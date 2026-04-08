@@ -1,5 +1,5 @@
 ---
-description: "Use when working with Excel workbooks (.xlsx/.xlsm/.xlsb/.xls): reading/writing cells, managing worksheets, tables (ListObjects), formatting, named ranges, document properties. Excel workbook automation."
+description: "Use when working with Excel workbooks (.xlsx/.xlsm/.xlsb/.xls): reading/writing cells, managing worksheets, tables, formatting, named ranges, document properties, filters, charts, pivot tables, conditional formatting, data validation, sparklines, hyperlinks, images, page setup, PDF export. Excel workbook automation."
 tools: [execute, read, edit, search, agent, todo]
 argument-hint: "Describe the Excel workbook task..."
 ---
@@ -108,7 +108,98 @@ Repair-ExcelWorkbook -WorkbookPath $wb -AsJson
 Close-ExcelWorkbook
 ```
 
-## Available Functions (43 public)
+**Filter & sort:**
+```powershell
+Set-ExcelAutoFilter -WorkbookPath $wb -SheetName "Sheet1" -AsJson
+Set-ExcelAutoFilter -WorkbookPath $wb -SheetName "Sheet1" -Range "A1:E20" -Column 2 -Criteria1 ">100" -AsJson
+Get-ExcelAutoFilter -WorkbookPath $wb -SheetName "Sheet1" -AsJson
+Remove-ExcelAutoFilter -WorkbookPath $wb -SheetName "Sheet1" -AsJson
+Sort-ExcelRange -WorkbookPath $wb -SheetName "Sheet1" -Range "A1:D20" -SortKey1 "B1" -Order1 "ascending" -AsJson
+```
+
+**Conditional formatting:**
+```powershell
+Add-ExcelConditionalFormat -WorkbookPath $wb -SheetName "Sheet1" -Range "B2:B100" -RuleType "CellValue" -Operator "greater" -Value1 100 -FillColor "#C6EFCE" -AsJson
+Get-ExcelConditionalFormat -WorkbookPath $wb -SheetName "Sheet1" -AsJson
+Remove-ExcelConditionalFormat -WorkbookPath $wb -SheetName "Sheet1" -Range "B2:B100" -RuleIndex 1 -AsJson
+Clear-ExcelConditionalFormat -WorkbookPath $wb -SheetName "Sheet1" -AsJson
+```
+
+**Data validation:**
+```powershell
+Set-ExcelDataValidation -WorkbookPath $wb -SheetName "Sheet1" -Range "C2:C100" -ValidationType "List" -Formula1 "Yes,No,Maybe" -AsJson
+Get-ExcelDataValidation -WorkbookPath $wb -SheetName "Sheet1" -Range "C2" -AsJson
+Remove-ExcelDataValidation -WorkbookPath $wb -SheetName "Sheet1" -Range "C2:C100" -AsJson
+```
+
+**View — freeze panes, visibility, grouping:**
+```powershell
+Set-ExcelFreezePane -WorkbookPath $wb -SheetName "Sheet1" -Row 2 -Column 1 -AsJson
+Get-ExcelFreezePane -WorkbookPath $wb -SheetName "Sheet1" -AsJson
+Set-ExcelFreezePane -WorkbookPath $wb -SheetName "Sheet1" -Unfreeze -AsJson
+Set-ExcelSheetVisibility -WorkbookPath $wb -SheetName "Hidden" -Visibility "hidden" -AsJson
+Get-ExcelSheetVisibility -WorkbookPath $wb -AsJson
+Set-ExcelGrouping -WorkbookPath $wb -SheetName "Sheet1" -Range "5:10" -AsJson
+Set-ExcelOutlineLevel -WorkbookPath $wb -SheetName "Sheet1" -RowLevel 1 -AsJson
+```
+
+**Hyperlinks:**
+```powershell
+Set-ExcelHyperlink -WorkbookPath $wb -SheetName "Sheet1" -Range "A1" -Address "https://example.com" -TextToDisplay "Example" -AsJson
+Get-ExcelHyperlink -WorkbookPath $wb -SheetName "Sheet1" -AsJson
+Remove-ExcelHyperlink -WorkbookPath $wb -SheetName "Sheet1" -Range "A1" -AsJson
+```
+
+**Clipboard — copy, replace, move:**
+```powershell
+Copy-ExcelRange -WorkbookPath $wb -SheetName "Sheet1" -SourceRange "A1:D10" -DestinationRange "F1" -PasteType "values" -AsJson
+Replace-ExcelValue -WorkbookPath $wb -SheetName "Sheet1" -SearchText "old" -ReplaceText "new" -AsJson
+Move-ExcelRange -WorkbookPath $wb -SheetName "Sheet1" -SourceRange "A1:B5" -DestinationRange "E1" -AsJson
+```
+
+**Print & page setup:**
+```powershell
+Set-ExcelPageSetup -WorkbookPath $wb -SheetName "Sheet1" -Orientation "landscape" -PaperSize "letter" -FitToPagesWide 1 -AsJson
+Get-ExcelPageSetup -WorkbookPath $wb -SheetName "Sheet1" -AsJson
+Export-ExcelToPdf -WorkbookPath $wb -OutputPath "C:\report.pdf" -SheetName "Sheet1" -AsJson
+```
+
+**Images & shapes:**
+```powershell
+Add-ExcelImage -WorkbookPath $wb -SheetName "Sheet1" -ImagePath "C:\logo.png" -CellAddress "E1" -Width 100 -Height 50 -AsJson
+Get-ExcelShape -WorkbookPath $wb -SheetName "Sheet1" -AsJson
+Remove-ExcelShape -WorkbookPath $wb -SheetName "Sheet1" -ShapeName "Picture 1" -AsJson
+```
+
+**Pivot tables:**
+```powershell
+New-ExcelPivotTable -WorkbookPath $wb -SheetName "Data" -SourceRange "A1:D100" -PivotTableName "SalesPivot" -DestinationSheet "PivotSheet" -RowFields @("Region") -DataFields @(@{Name="Revenue";Function="Sum"}) -AsJson
+Get-ExcelPivotTable -WorkbookPath $wb -SheetName "PivotSheet" -AsJson
+Update-ExcelPivotTable -WorkbookPath $wb -SheetName "PivotSheet" -AsJson
+```
+
+**Charts:**
+```powershell
+New-ExcelChart -WorkbookPath $wb -SheetName "Sheet1" -SourceRange "A1:B10" -ChartType "ColumnClustered" -Title "Sales" -AsJson
+Get-ExcelChart -WorkbookPath $wb -SheetName "Sheet1" -AsJson
+Set-ExcelChart -WorkbookPath $wb -SheetName "Sheet1" -ChartName "Chart 1" -ChartType "Pie" -AsJson
+Export-ExcelChart -WorkbookPath $wb -SheetName "Sheet1" -ChartName "Chart 1" -OutputPath "C:\chart.png" -AsJson
+```
+
+**Import:**
+```powershell
+Import-ExcelCsv -WorkbookPath $wb -SheetName "Import" -CsvPath "C:\data.csv" -Delimiter "comma" -HasHeaders -AsJson
+Import-ExcelText -WorkbookPath $wb -SheetName "Import" -TextPath "C:\data.txt" -ParseType "delimited" -Delimiter "|" -AsJson
+```
+
+**Sparklines:**
+```powershell
+Add-ExcelSparkline -WorkbookPath $wb -SheetName "Sheet1" -LocationRange "E1:E5" -DataRange "A1:D5" -SparklineType "line" -ShowHighPoint -AsJson
+Get-ExcelSparkline -WorkbookPath $wb -SheetName "Sheet1" -CellAddress "E1" -AsJson
+Remove-ExcelSparkline -WorkbookPath $wb -SheetName "Sheet1" -CellAddress "E1:E5" -AsJson
+```
+
+## Available Functions (84 public)
 
 | Category | Functions |
 |----------|-----------|
@@ -118,6 +209,18 @@ Close-ExcelWorkbook
 | **Named Ranges** | `Get-ExcelNamedRange`, `New-ExcelNamedRange`, `Remove-ExcelNamedRange` |
 | **Tables** | `Get-ExcelTable`, `New-ExcelTable`, `Remove-ExcelTable`, `Resize-ExcelTable`, `Get-ExcelTableData`, `Add-ExcelTableRow`, `Remove-ExcelTableRow`, `Get-ExcelTableColumn`, `Set-ExcelTableTotals` |
 | **Formatting** | `Set-ExcelCellFormat`, `Set-ExcelNumberFormat`, `Set-ExcelColumnWidth`, `Set-ExcelRowHeight`, `Set-ExcelAlignment` |
+| **Filter & Sort** | `Set-ExcelAutoFilter`, `Remove-ExcelAutoFilter`, `Sort-ExcelRange`, `Get-ExcelAutoFilter` |
+| **Conditional Format** | `Add-ExcelConditionalFormat`, `Get-ExcelConditionalFormat`, `Remove-ExcelConditionalFormat`, `Clear-ExcelConditionalFormat` |
+| **Data Validation** | `Set-ExcelDataValidation`, `Get-ExcelDataValidation`, `Remove-ExcelDataValidation` |
+| **View** | `Set-ExcelFreezePane`, `Get-ExcelFreezePane`, `Set-ExcelSheetVisibility`, `Get-ExcelSheetVisibility`, `Set-ExcelGrouping`, `Set-ExcelOutlineLevel` |
+| **Hyperlinks** | `Set-ExcelHyperlink`, `Get-ExcelHyperlink`, `Remove-ExcelHyperlink` |
+| **Clipboard** | `Copy-ExcelRange`, `Replace-ExcelValue`, `Move-ExcelRange` |
+| **Print & Page Setup** | `Set-ExcelPageSetup`, `Get-ExcelPageSetup`, `Export-ExcelToPdf` |
+| **Images & Shapes** | `Add-ExcelImage`, `Get-ExcelShape`, `Remove-ExcelShape` |
+| **Pivot Tables** | `New-ExcelPivotTable`, `Get-ExcelPivotTable`, `Update-ExcelPivotTable` |
+| **Charts** | `New-ExcelChart`, `Get-ExcelChart`, `Set-ExcelChart`, `Export-ExcelChart` |
+| **Import** | `Import-ExcelCsv`, `Import-ExcelText` |
+| **Sparklines** | `Add-ExcelSparkline`, `Get-ExcelSparkline`, `Remove-ExcelSparkline` |
 | **Properties** | `Get-ExcelDocumentProperty`, `Set-ExcelDocumentProperty` |
 | **Connections** | `Get-ExcelConnection` |
 | **Protection** | `Get-ExcelProtection`, `Set-ExcelProtection` |
