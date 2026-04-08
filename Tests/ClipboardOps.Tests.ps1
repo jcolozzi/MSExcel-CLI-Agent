@@ -41,30 +41,30 @@ Describe 'Copy-ExcelRange' {
     }
 }
 
-Describe 'Replace-ExcelValue' {
+Describe 'Update-ExcelValue' {
     It 'Has CmdletBinding' {
-        (Get-Command Replace-ExcelValue).CmdletBinding | Should -BeTrue
+        (Get-Command Update-ExcelValue).CmdletBinding | Should -BeTrue
     }
     It 'Has WorkbookPath parameter' {
-        (Get-Command Replace-ExcelValue).Parameters['WorkbookPath'] | Should -Not -BeNullOrEmpty
+        (Get-Command Update-ExcelValue).Parameters['WorkbookPath'] | Should -Not -BeNullOrEmpty
     }
     It 'Has SheetName parameter' {
-        (Get-Command Replace-ExcelValue).Parameters['SheetName'] | Should -Not -BeNullOrEmpty
+        (Get-Command Update-ExcelValue).Parameters['SheetName'] | Should -Not -BeNullOrEmpty
     }
     It 'Has SearchText parameter' {
-        (Get-Command Replace-ExcelValue).Parameters['SearchText'] | Should -Not -BeNullOrEmpty
+        (Get-Command Update-ExcelValue).Parameters['SearchText'] | Should -Not -BeNullOrEmpty
     }
     It 'Has ReplaceText parameter' {
-        (Get-Command Replace-ExcelValue).Parameters['ReplaceText'] | Should -Not -BeNullOrEmpty
+        (Get-Command Update-ExcelValue).Parameters['ReplaceText'] | Should -Not -BeNullOrEmpty
     }
     It 'Has Range parameter' {
-        (Get-Command Replace-ExcelValue).Parameters['Range'] | Should -Not -BeNullOrEmpty
+        (Get-Command Update-ExcelValue).Parameters['Range'] | Should -Not -BeNullOrEmpty
     }
     It 'Has MatchCase parameter' {
-        (Get-Command Replace-ExcelValue).Parameters['MatchCase'] | Should -Not -BeNullOrEmpty
+        (Get-Command Update-ExcelValue).Parameters['MatchCase'] | Should -Not -BeNullOrEmpty
     }
     It 'Has AsJson parameter' {
-        (Get-Command Replace-ExcelValue).Parameters['AsJson'] | Should -Not -BeNullOrEmpty
+        (Get-Command Update-ExcelValue).Parameters['AsJson'] | Should -Not -BeNullOrEmpty
     }
 }
 

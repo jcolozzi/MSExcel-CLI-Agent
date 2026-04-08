@@ -71,7 +71,7 @@ function Copy-ExcelRange {
     Format-ExcelOutput -Data $result -AsJson:$AsJson
 }
 
-function Replace-ExcelValue {
+function Update-ExcelValue {
     <#
     .SYNOPSIS
         Find and replace values in a range or entire used range.
@@ -90,9 +90,9 @@ function Replace-ExcelValue {
     .PARAMETER AsJson
         Return JSON string instead of PSCustomObject.
     .EXAMPLE
-        Replace-ExcelValue -WorkbookPath "C:\data.xlsx" -SheetName "Sheet1" -SearchText "foo" -ReplaceText "bar" -AsJson
+        Update-ExcelValue -WorkbookPath "C:\data.xlsx" -SheetName "Sheet1" -SearchText "foo" -ReplaceText "bar" -AsJson
     .EXAMPLE
-        Replace-ExcelValue -WorkbookPath "C:\data.xlsx" -SheetName "Sheet1" -SearchText "old" -ReplaceText "new" -Range "A1:D50" -MatchCase -AsJson
+        Update-ExcelValue -WorkbookPath "C:\data.xlsx" -SheetName "Sheet1" -SearchText "old" -ReplaceText "new" -Range "A1:D50" -MatchCase -AsJson
     #>
     [CmdletBinding()]
     param(

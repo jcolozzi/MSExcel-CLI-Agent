@@ -153,7 +153,7 @@ Remove-ExcelHyperlink -WorkbookPath $wb -SheetName "Sheet1" -Range "A1" -AsJson
 **Clipboard — copy, replace, move:**
 ```powershell
 Copy-ExcelRange -WorkbookPath $wb -SheetName "Sheet1" -SourceRange "A1:D10" -DestinationRange "F1" -PasteType "values" -AsJson
-Replace-ExcelValue -WorkbookPath $wb -SheetName "Sheet1" -SearchText "old" -ReplaceText "new" -AsJson
+Update-ExcelValue -WorkbookPath $wb -SheetName "Sheet1" -SearchText "old" -ReplaceText "new" -AsJson
 Move-ExcelRange -WorkbookPath $wb -SheetName "Sheet1" -SourceRange "A1:B5" -DestinationRange "E1" -AsJson
 ```
 
@@ -214,7 +214,7 @@ Remove-ExcelSparkline -WorkbookPath $wb -SheetName "Sheet1" -CellAddress "E1:E5"
 | **Data Validation** | `Set-ExcelDataValidation`, `Get-ExcelDataValidation`, `Remove-ExcelDataValidation` |
 | **View** | `Set-ExcelFreezePane`, `Get-ExcelFreezePane`, `Set-ExcelSheetVisibility`, `Get-ExcelSheetVisibility`, `Set-ExcelGrouping`, `Set-ExcelOutlineLevel` |
 | **Hyperlinks** | `Set-ExcelHyperlink`, `Get-ExcelHyperlink`, `Remove-ExcelHyperlink` |
-| **Clipboard** | `Copy-ExcelRange`, `Replace-ExcelValue`, `Move-ExcelRange` |
+| **Clipboard** | `Copy-ExcelRange`, `Update-ExcelValue`, `Move-ExcelRange` |
 | **Print & Page Setup** | `Set-ExcelPageSetup`, `Get-ExcelPageSetup`, `Export-ExcelToPdf` |
 | **Images & Shapes** | `Add-ExcelImage`, `Get-ExcelShape`, `Remove-ExcelShape` |
 | **Pivot Tables** | `New-ExcelPivotTable`, `Get-ExcelPivotTable`, `Update-ExcelPivotTable` |

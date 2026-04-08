@@ -92,7 +92,7 @@
 
         # Clipboard — Copy, Replace, Move (3)
         'Copy-ExcelRange'
-        'Replace-ExcelValue'
+        'Update-ExcelValue'
         'Move-ExcelRange'
 
         # Print & Page Setup (3)

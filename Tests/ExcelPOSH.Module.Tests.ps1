@@ -99,7 +99,7 @@ Describe 'ExcelPOSH Module' {
             # HyperlinkOps (3)
             'Set-ExcelHyperlink', 'Get-ExcelHyperlink', 'Remove-ExcelHyperlink',
             # ClipboardOps (3)
-            'Copy-ExcelRange', 'Replace-ExcelValue', 'Move-ExcelRange',
+            'Copy-ExcelRange', 'Update-ExcelValue', 'Move-ExcelRange',
             # PrintOps (3)
             'Set-ExcelPageSetup', 'Get-ExcelPageSetup', 'Export-ExcelToPdf',
             # ImageShapeOps (3)

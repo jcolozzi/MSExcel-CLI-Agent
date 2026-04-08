@@ -1,6 +1,8 @@
 # Tests/PrintOps.Tests.ps1
 # Parameter-validation tests for PrintOps functions (no COM required)
 
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '')]param()
+
 BeforeAll {
     $modulePath = Join-Path $PSScriptRoot '..\ExcelPOSH\ExcelPOSH.psd1'
     Get-Module ExcelPOSH -ErrorAction SilentlyContinue | Remove-Module -Force
