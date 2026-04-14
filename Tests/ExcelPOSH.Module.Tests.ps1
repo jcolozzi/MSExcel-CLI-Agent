@@ -40,13 +40,13 @@ Describe 'ExcelPOSH Module' {
             Get-Module ExcelPOSH | Should -Not -BeNullOrEmpty
         }
 
-        It 'Module version is 2.0.0' {
-            (Get-Module ExcelPOSH).Version.ToString() | Should -Be '2.0.0'
+        It 'Module version is 3.0.0' {
+            (Get-Module ExcelPOSH).Version.ToString() | Should -Be '3.0.0'
         }
 
-        It 'Exports exactly 84 public functions' {
+        It 'Exports exactly 104 public functions' {
             $exported = (Get-Module ExcelPOSH).ExportedFunctions.Keys
-            $exported.Count | Should -Be 84
+            $exported.Count | Should -Be 104
         }
     }
 
@@ -111,7 +111,25 @@ Describe 'ExcelPOSH Module' {
             # ImportOps (2)
             'Import-ExcelCsv', 'Import-ExcelText',
             # SparklineOps (3)
-            'Add-ExcelSparkline', 'Get-ExcelSparkline', 'Remove-ExcelSparkline'
+            'Add-ExcelSparkline', 'Get-ExcelSparkline', 'Remove-ExcelSparkline',
+            # StructuralOps (4) — v3.0
+            'Add-ExcelRow', 'Remove-ExcelRow', 'Add-ExcelColumn', 'Remove-ExcelColumn',
+            # CalculationOps (4) — v3.0
+            'Set-ExcelPerformanceMode', 'Invoke-ExcelCalculate',
+            'Invoke-ExcelFunction', 'Invoke-ExcelEvaluate',
+            # FilterSortOps additions — v3.0
+            'Remove-ExcelDuplicates', 'Invoke-ExcelAdvancedFilter',
+            # FormattingOps additions — v3.0
+            'Merge-ExcelRange', 'Split-ExcelRange',
+            # WorksheetOps additions — v3.0
+            'Get-ExcelSpecialCells',
+            # WorkbookOps additions — v3.0
+            'Invoke-ExcelMacro',
+            # ChartOps additions — v3.0
+            'Set-ExcelChartSeries', 'Set-ExcelChartAxis',
+            'Set-ExcelChartLegend', 'Set-ExcelChartDataLabels',
+            # PivotTableOps additions — v3.0
+            'Set-ExcelPivotField', 'Add-ExcelPivotCalculatedField'
         ) {
             $script:exported | Should -Contain $_
         }
@@ -213,6 +231,14 @@ Describe 'ExcelPOSH Module' {
 
         It 'Public/SparklineOps.ps1 exists' {
             Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\SparklineOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/StructuralOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\StructuralOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/CalculationOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\CalculationOps.ps1') | Should -BeTrue
         }
     }
 

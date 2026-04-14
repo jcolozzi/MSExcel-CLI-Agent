@@ -264,3 +264,90 @@ function Update-ExcelPivotTable {
     }
     Format-ExcelOutput -Data $result -AsJson:$AsJson
 }
+
+function Set-ExcelPivotField {
+    <#
+    .SYNOPSIS  Configure pivot field properties (subtotals, number format, layout).
+    .PARAMETER WorkbookPath    Path to the Excel workbook.
+    .PARAMETER SheetName       Worksheet containing the pivot table.
+    .PARAMETER PivotTableName  Name of the pivot table.
+    .PARAMETER FieldName       Name of the pivot field to configure.
+    .PARAMETER Subtotals       Subtotal functions to apply.
+    .PARAMETER NumberFormat    Number format string.
+    .PARAMETER LayoutForm      Layout form: Compact, Tabular, or Outline.
+    .PARAMETER AsJson          Return JSON string.
+    .EXAMPLE   Set-ExcelPivotField -WorkbookPath C:\data.xlsx -SheetName PivotSheet -PivotTableName "SalesPivot" -FieldName "Region" -LayoutForm Tabular -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$PivotTableName,
+        [Parameter(Mandatory)][string]$FieldName,
+        [ValidateSet('Automatic','Sum','Count','Average','Max','Min','Product','CountNums','StdDev','Var','None')]
+        [string[]]$Subtotals,
+        [string]$NumberFormat,
+        [ValidateSet('Compact','Tabular','Outline')]
+        [string]$LayoutForm,
+        [switch]$AsJson
+    )
+
+    $app   = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws    = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $pvt   = $ws.PivotTables($PivotTableName)
+    $field = $pvt.PivotFields($FieldName)
+
+    if ($PSBoundParameters.ContainsKey('NumberFormat')) { $field.NumberFormat = $NumberFormat }
+    if ($PSBoundParameters.ContainsKey('LayoutForm')) {
+        $layoutMap = @{ Compact = 0; Tabular = 1; Outline = 2 }
+        $field.LayoutForm = $layoutMap[$LayoutForm]
+    }
+    if ($PSBoundParameters.ContainsKey('Subtotals')) {
+        $subArray = @($false) * 12
+        $subMap = @{ Automatic=0; Sum=1; Count=2; Average=3; Max=4; Min=5; Product=6; CountNums=7; StdDev=8; Var=9; None=-1 }
+        foreach ($s in $Subtotals) {
+            $idx = $subMap[$s]
+            if ($idx -ge 0) { $subArray[$idx] = $true }
+        }
+        if ($Subtotals -contains 'None') { $subArray = @($false) * 12 }
+        $field.Subtotals = $subArray
+    }
+
+    $result = @{ status = 'ok'; pivotTable = $PivotTableName; field = $FieldName }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Add-ExcelPivotCalculatedField {
+    <#
+    .SYNOPSIS  Add a calculated field to a pivot table.
+    .PARAMETER WorkbookPath    Path to the Excel workbook.
+    .PARAMETER SheetName       Worksheet containing the pivot table.
+    .PARAMETER PivotTableName  Name of the pivot table.
+    .PARAMETER Name            Name for the calculated field.
+    .PARAMETER Formula         Formula expression for the calculated field.
+    .PARAMETER AsJson          Return JSON string.
+    .EXAMPLE   Add-ExcelPivotCalculatedField -WorkbookPath C:\data.xlsx -SheetName PivotSheet -PivotTableName "SalesPivot" -Name "Profit" -Formula "=Revenue-Cost" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$PivotTableName,
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$Formula,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $pvt = $ws.PivotTables($PivotTableName)
+
+    $pvt.CalculatedFields.Add($Name, $Formula) | Out-Null
+
+    $result = @{
+        status          = 'ok'
+        pivotTable      = $PivotTableName
+        calculatedField = $Name
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}

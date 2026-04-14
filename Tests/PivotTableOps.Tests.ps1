@@ -85,3 +85,60 @@ Describe 'Update-ExcelPivotTable' {
         (Get-Command Update-ExcelPivotTable).Parameters['AsJson'] | Should -Not -BeNullOrEmpty
     }
 }
+
+Describe 'Set-ExcelPivotField' {
+    It 'Has CmdletBinding' {
+        (Get-Command Set-ExcelPivotField).CmdletBinding | Should -BeTrue
+    }
+    It 'Has mandatory PivotTableName parameter' {
+        $p = (Get-Command Set-ExcelPivotField).Parameters['PivotTableName']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has mandatory FieldName parameter' {
+        $p = (Get-Command Set-ExcelPivotField).Parameters['FieldName']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has LayoutForm with ValidateSet' {
+        $p = (Get-Command Set-ExcelPivotField).Parameters['LayoutForm']
+        $p | Should -Not -BeNullOrEmpty
+        $vs = $p.Attributes.Where({ $_ -is [System.Management.Automation.ValidateSetAttribute] })
+        $vs | Should -Not -BeNullOrEmpty
+        $vs.ValidValues | Should -Contain 'Compact'
+        $vs.ValidValues | Should -Contain 'Tabular'
+        $vs.ValidValues | Should -Contain 'Outline'
+    }
+    It 'Has Subtotals with ValidateSet' {
+        $p = (Get-Command Set-ExcelPivotField).Parameters['Subtotals']
+        $p | Should -Not -BeNullOrEmpty
+        $vs = $p.Attributes.Where({ $_ -is [System.Management.Automation.ValidateSetAttribute] })
+        $vs | Should -Not -BeNullOrEmpty
+    }
+    It 'Has AsJson switch' {
+        (Get-Command Set-ExcelPivotField).Parameters['AsJson'].SwitchParameter | Should -BeTrue
+    }
+}
+
+Describe 'Add-ExcelPivotCalculatedField' {
+    It 'Has CmdletBinding' {
+        (Get-Command Add-ExcelPivotCalculatedField).CmdletBinding | Should -BeTrue
+    }
+    It 'Has mandatory PivotTableName parameter' {
+        $p = (Get-Command Add-ExcelPivotCalculatedField).Parameters['PivotTableName']
+        $p | Should -Not -BeNullOrEmpty
+    }
+    It 'Has mandatory Name parameter' {
+        $p = (Get-Command Add-ExcelPivotCalculatedField).Parameters['Name']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has mandatory Formula parameter' {
+        $p = (Get-Command Add-ExcelPivotCalculatedField).Parameters['Formula']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has AsJson switch' {
+        (Get-Command Add-ExcelPivotCalculatedField).Parameters['AsJson'].SwitchParameter | Should -BeTrue
+    }
+}

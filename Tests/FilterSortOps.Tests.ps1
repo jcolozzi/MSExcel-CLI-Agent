@@ -103,3 +103,60 @@ Describe 'Get-ExcelAutoFilter' {
         (Get-Command Get-ExcelAutoFilter).Parameters['AsJson'] | Should -Not -BeNullOrEmpty
     }
 }
+
+Describe 'Remove-ExcelDuplicates' {
+    It 'Has CmdletBinding' {
+        (Get-Command Remove-ExcelDuplicates).CmdletBinding | Should -BeTrue
+    }
+    It 'Has mandatory WorkbookPath parameter' {
+        $p = (Get-Command Remove-ExcelDuplicates).Parameters['WorkbookPath']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has mandatory Range parameter' {
+        $p = (Get-Command Remove-ExcelDuplicates).Parameters['Range']
+        $p | Should -Not -BeNullOrEmpty
+    }
+    It 'Has mandatory Columns parameter (int array)' {
+        $p = (Get-Command Remove-ExcelDuplicates).Parameters['Columns']
+        $p | Should -Not -BeNullOrEmpty
+        $p.ParameterType.Name | Should -Be 'Int32[]'
+    }
+    It 'Has HasHeader switch' {
+        (Get-Command Remove-ExcelDuplicates).Parameters['HasHeader'].SwitchParameter | Should -BeTrue
+    }
+    It 'Has AsJson switch' {
+        (Get-Command Remove-ExcelDuplicates).Parameters['AsJson'].SwitchParameter | Should -BeTrue
+    }
+}
+
+Describe 'Invoke-ExcelAdvancedFilter' {
+    It 'Has CmdletBinding' {
+        (Get-Command Invoke-ExcelAdvancedFilter).CmdletBinding | Should -BeTrue
+    }
+    It 'Has mandatory WorkbookPath parameter' {
+        $p = (Get-Command Invoke-ExcelAdvancedFilter).Parameters['WorkbookPath']
+        $p | Should -Not -BeNullOrEmpty
+    }
+    It 'Has mandatory Range parameter' {
+        $p = (Get-Command Invoke-ExcelAdvancedFilter).Parameters['Range']
+        $p | Should -Not -BeNullOrEmpty
+    }
+    It 'Has mandatory Action parameter with ValidateSet' {
+        $p = (Get-Command Invoke-ExcelAdvancedFilter).Parameters['Action']
+        $p | Should -Not -BeNullOrEmpty
+        $vs = $p.Attributes.Where({ $_ -is [System.Management.Automation.ValidateSetAttribute] })
+        $vs | Should -Not -BeNullOrEmpty
+        $vs.ValidValues | Should -Contain 'FilterInPlace'
+        $vs.ValidValues | Should -Contain 'CopyToRange'
+    }
+    It 'Has CriteriaRange parameter' {
+        (Get-Command Invoke-ExcelAdvancedFilter).Parameters['CriteriaRange'] | Should -Not -BeNullOrEmpty
+    }
+    It 'Has UniqueOnly switch' {
+        (Get-Command Invoke-ExcelAdvancedFilter).Parameters['UniqueOnly'].SwitchParameter | Should -BeTrue
+    }
+    It 'Has AsJson switch' {
+        (Get-Command Invoke-ExcelAdvancedFilter).Parameters['AsJson'].SwitchParameter | Should -BeTrue
+    }
+}

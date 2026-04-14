@@ -96,3 +96,28 @@ Describe 'Copy-ExcelWorkbook' {
         { Copy-ExcelWorkbook -WorkbookPath 'C:\nonexistent\fake.xlsx' -DestinationPath 'C:\temp\out.xlsx' } | Should -Throw '*not found*'
     }
 }
+
+Describe 'Invoke-ExcelMacro' {
+    It 'Has CmdletBinding' {
+        (Get-Command Invoke-ExcelMacro).CmdletBinding | Should -BeTrue
+    }
+    It 'Has mandatory WorkbookPath parameter' {
+        $p = (Get-Command Invoke-ExcelMacro).Parameters['WorkbookPath']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has mandatory MacroName parameter' {
+        $p = (Get-Command Invoke-ExcelMacro).Parameters['MacroName']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has Arguments parameter with ValidateCount(0,30)' {
+        $p = (Get-Command Invoke-ExcelMacro).Parameters['Arguments']
+        $p | Should -Not -BeNullOrEmpty
+        $vc = $p.Attributes.Where({ $_ -is [System.Management.Automation.ValidateCountAttribute] })
+        $vc | Should -Not -BeNullOrEmpty
+    }
+    It 'Has AsJson switch' {
+        (Get-Command Invoke-ExcelMacro).Parameters['AsJson'].SwitchParameter | Should -BeTrue
+    }
+}

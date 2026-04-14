@@ -655,3 +655,48 @@ function Remove-ExcelNamedRange {
     }
     Format-ExcelOutput -Data $result -AsJson:$AsJson
 }
+
+function Get-ExcelSpecialCells {
+    <#
+    .SYNOPSIS  Find cells of a specific type (blanks, formulas, constants, etc.).
+    .PARAMETER WorkbookPath  Path to the Excel workbook.
+    .PARAMETER SheetName     Target worksheet name.
+    .PARAMETER Range         Range to search (defaults to UsedRange).
+    .PARAMETER CellType      Type of special cells to find.
+    .PARAMETER AsJson        Return JSON string.
+    .EXAMPLE   Get-ExcelSpecialCells -WorkbookPath C:\data.xlsx -SheetName Sheet1 -CellType Formulas -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [string]$Range,
+        [Parameter(Mandatory)]
+        [ValidateSet('Blanks','Constants','Formulas','Errors','Visible','LastCell','Comments')]
+        [string]$CellType,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+
+    $rng = if ([string]::IsNullOrWhiteSpace($Range)) { $ws.UsedRange } else { $ws.Range($Range) }
+
+    try {
+        $cells     = $rng.SpecialCells([int]$script:XL_CELL_TYPE[$CellType.ToLower()])
+        $addresses = @($cells.Address($false, $false) -split ',')
+        $cellCount = $cells.Count
+    } catch {
+        # No cells of this type exist — not an error
+        $addresses = @()
+        $cellCount = 0
+    }
+
+    $result = @{
+        status    = 'ok'
+        cellType  = $CellType
+        addresses = $addresses
+        count     = $cellCount
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}

@@ -106,3 +106,45 @@ Describe 'Set-ExcelAlignment' {
         (Get-Command Set-ExcelAlignment).Parameters['MergeCells'] | Should -Not -BeNullOrEmpty
     }
 }
+
+Describe 'Merge-ExcelRange' {
+    It 'Has CmdletBinding' {
+        (Get-Command Merge-ExcelRange).CmdletBinding | Should -BeTrue
+    }
+    It 'Has mandatory WorkbookPath parameter' {
+        $p = (Get-Command Merge-ExcelRange).Parameters['WorkbookPath']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has mandatory SheetName parameter' {
+        $p = (Get-Command Merge-ExcelRange).Parameters['SheetName']
+        $p | Should -Not -BeNullOrEmpty
+    }
+    It 'Has mandatory Range parameter' {
+        $p = (Get-Command Merge-ExcelRange).Parameters['Range']
+        $p | Should -Not -BeNullOrEmpty
+    }
+    It 'Has Across switch' {
+        (Get-Command Merge-ExcelRange).Parameters['Across'].SwitchParameter | Should -BeTrue
+    }
+    It 'Has AsJson switch' {
+        (Get-Command Merge-ExcelRange).Parameters['AsJson'].SwitchParameter | Should -BeTrue
+    }
+}
+
+Describe 'Split-ExcelRange' {
+    It 'Has CmdletBinding' {
+        (Get-Command Split-ExcelRange).CmdletBinding | Should -BeTrue
+    }
+    It 'Has mandatory WorkbookPath parameter' {
+        $p = (Get-Command Split-ExcelRange).Parameters['WorkbookPath']
+        $p | Should -Not -BeNullOrEmpty
+    }
+    It 'Has mandatory Range parameter' {
+        $p = (Get-Command Split-ExcelRange).Parameters['Range']
+        $p | Should -Not -BeNullOrEmpty
+    }
+    It 'Has AsJson switch' {
+        (Get-Command Split-ExcelRange).Parameters['AsJson'].SwitchParameter | Should -BeTrue
+    }
+}

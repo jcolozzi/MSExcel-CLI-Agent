@@ -224,3 +224,188 @@ function Export-ExcelChart {
     }
     Format-ExcelOutput -Data $result -AsJson:$AsJson
 }
+
+function Set-ExcelChartSeries {
+    <#
+    .SYNOPSIS  Modify a chart data series properties.
+    .PARAMETER WorkbookPath  Path to the Excel workbook.
+    .PARAMETER SheetName     Worksheet containing the chart.
+    .PARAMETER ChartName     Name of the chart object.
+    .PARAMETER SeriesIndex   1-based index of the series to modify.
+    .PARAMETER Name          Series display name.
+    .PARAMETER Values        Range address for series values.
+    .PARAMETER XValues       Range address for category (X) values.
+    .PARAMETER FillColor     Hex fill color (e.g. "#FF0000").
+    .PARAMETER LineColor     Hex line color.
+    .PARAMETER LineWeight    Line weight in points.
+    .PARAMETER AsJson        Return JSON string.
+    .EXAMPLE   Set-ExcelChartSeries -WorkbookPath C:\data.xlsx -SheetName Sheet1 -ChartName "Chart 1" -SeriesIndex 1 -Name "Revenue" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$ChartName,
+        [Parameter(Mandatory)][int]$SeriesIndex,
+        [string]$Name,
+        [string]$Values,
+        [string]$XValues,
+        [string]$FillColor,
+        [string]$LineColor,
+        [double]$LineWeight,
+        [switch]$AsJson
+    )
+
+    $app    = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws     = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $chart  = $ws.ChartObjects($ChartName).Chart
+    $series = $chart.SeriesCollection($SeriesIndex)
+
+    if ($PSBoundParameters.ContainsKey('Name'))      { $series.Name    = $Name }
+    if ($PSBoundParameters.ContainsKey('Values'))     { $series.Values  = $ws.Range($Values) }
+    if ($PSBoundParameters.ContainsKey('XValues'))    { $series.XValues = $ws.Range($XValues) }
+    if ($PSBoundParameters.ContainsKey('FillColor'))  { $series.Format.Fill.ForeColor.RGB = ConvertTo-RGBColor $FillColor }
+    if ($PSBoundParameters.ContainsKey('LineColor'))  { $series.Format.Line.ForeColor.RGB = ConvertTo-RGBColor $LineColor }
+    if ($PSBoundParameters.ContainsKey('LineWeight')) { $series.Format.Line.Weight = $LineWeight }
+
+    $result = @{ status = 'ok'; chart = $ChartName; seriesIndex = $SeriesIndex }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Set-ExcelChartAxis {
+    <#
+    .SYNOPSIS  Configure a chart axis (title, scale, number format).
+    .PARAMETER WorkbookPath  Path to the Excel workbook.
+    .PARAMETER SheetName     Worksheet containing the chart.
+    .PARAMETER ChartName     Name of the chart object.
+    .PARAMETER AxisType      Category, Value, or SeriesAxis.
+    .PARAMETER AxisGroup     Primary or Secondary axis group.
+    .PARAMETER Title         Axis title text.
+    .PARAMETER MinimumScale  Minimum axis value.
+    .PARAMETER MaximumScale  Maximum axis value.
+    .PARAMETER NumberFormat  Number format string for tick labels.
+    .PARAMETER AsJson        Return JSON string.
+    .EXAMPLE   Set-ExcelChartAxis -WorkbookPath C:\data.xlsx -SheetName Sheet1 -ChartName "Chart 1" -AxisType Value -Title "Revenue ($)" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$ChartName,
+        [Parameter(Mandatory)]
+        [ValidateSet('Category','Value','SeriesAxis')]
+        [string]$AxisType,
+        [ValidateSet('Primary','Secondary')]
+        [string]$AxisGroup = 'Primary',
+        [string]$Title,
+        [double]$MinimumScale,
+        [double]$MaximumScale,
+        [string]$NumberFormat,
+        [switch]$AsJson
+    )
+
+    $app   = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws    = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $chart = $ws.ChartObjects($ChartName).Chart
+
+    $axType  = [int]$script:XL_AXIS_TYPE[$AxisType.ToLower()]
+    $axGroup = [int]$script:XL_AXIS_GROUP[$AxisGroup.ToLower()]
+    $axis    = $chart.Axes($axType, $axGroup)
+
+    if ($PSBoundParameters.ContainsKey('Title')) {
+        $axis.HasTitle       = $true
+        $axis.AxisTitle.Text = $Title
+    }
+    if ($PSBoundParameters.ContainsKey('MinimumScale')) { $axis.MinimumScale = $MinimumScale }
+    if ($PSBoundParameters.ContainsKey('MaximumScale')) { $axis.MaximumScale = $MaximumScale }
+    if ($PSBoundParameters.ContainsKey('NumberFormat')) { $axis.TickLabels.NumberFormat = $NumberFormat }
+
+    $result = @{ status = 'ok'; chart = $ChartName; axisType = $AxisType; axisGroup = $AxisGroup }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Set-ExcelChartLegend {
+    <#
+    .SYNOPSIS  Show/hide and position the chart legend.
+    .PARAMETER WorkbookPath  Path to the Excel workbook.
+    .PARAMETER SheetName     Worksheet containing the chart.
+    .PARAMETER ChartName     Name of the chart object.
+    .PARAMETER Show          Show or hide the legend.
+    .PARAMETER Position      Legend position: Bottom, Corner, Left, Right, Top.
+    .PARAMETER AsJson        Return JSON string.
+    .EXAMPLE   Set-ExcelChartLegend -WorkbookPath C:\data.xlsx -SheetName Sheet1 -ChartName "Chart 1" -Show $true -Position Bottom -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$ChartName,
+        [Parameter(Mandatory)][bool]$Show,
+        [ValidateSet('Bottom','Corner','Left','Right','Top')]
+        [string]$Position,
+        [switch]$AsJson
+    )
+
+    $app   = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws    = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $chart = $ws.ChartObjects($ChartName).Chart
+
+    $chart.HasLegend = $Show
+    if ($Show -and $PSBoundParameters.ContainsKey('Position')) {
+        $chart.Legend.Position = [int]$script:XL_LEGEND_POSITION[$Position.ToLower()]
+    }
+
+    $result = @{ status = 'ok'; chart = $ChartName; hasLegend = $Show }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Set-ExcelChartDataLabels {
+    <#
+    .SYNOPSIS  Configure data labels on a chart series.
+    .PARAMETER WorkbookPath   Path to the Excel workbook.
+    .PARAMETER SheetName      Worksheet containing the chart.
+    .PARAMETER ChartName      Name of the chart object.
+    .PARAMETER SeriesIndex    1-based index of the series.
+    .PARAMETER ShowValue      Show data values.
+    .PARAMETER ShowCategory   Show category names.
+    .PARAMETER ShowPercentage Show percentages (pie/doughnut charts).
+    .PARAMETER NumberFormat   Number format string for labels.
+    .PARAMETER Position       Label position: Center, InsideBase, InsideEnd, OutsideEnd, BestFit.
+    .PARAMETER AsJson         Return JSON string.
+    .EXAMPLE   Set-ExcelChartDataLabels -WorkbookPath C:\data.xlsx -SheetName Sheet1 -ChartName "Chart 1" -SeriesIndex 1 -ShowValue $true -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$ChartName,
+        [Parameter(Mandatory)][int]$SeriesIndex,
+        [bool]$ShowValue,
+        [bool]$ShowCategory,
+        [bool]$ShowPercentage,
+        [string]$NumberFormat,
+        [ValidateSet('Center','InsideBase','InsideEnd','OutsideEnd','BestFit')]
+        [string]$Position,
+        [switch]$AsJson
+    )
+
+    $app    = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws     = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $chart  = $ws.ChartObjects($ChartName).Chart
+    $series = $chart.SeriesCollection($SeriesIndex)
+
+    $series.HasDataLabels = $true
+    $labels = $series.DataLabels
+
+    if ($PSBoundParameters.ContainsKey('ShowValue'))      { $labels.ShowValue        = $ShowValue }
+    if ($PSBoundParameters.ContainsKey('ShowCategory'))   { $labels.ShowCategoryName = $ShowCategory }
+    if ($PSBoundParameters.ContainsKey('ShowPercentage')) { $labels.ShowPercentage   = $ShowPercentage }
+    if ($PSBoundParameters.ContainsKey('NumberFormat'))   { $labels.NumberFormat     = $NumberFormat }
+    if ($PSBoundParameters.ContainsKey('Position')) {
+        $posMap = @{ Center = 0; InsideBase = 3; InsideEnd = 1; OutsideEnd = 2; BestFit = 5 }
+        $labels.Position = $posMap[$Position]
+    }
+
+    $result = @{ status = 'ok'; chart = $ChartName; seriesIndex = $SeriesIndex }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}

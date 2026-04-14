@@ -337,6 +337,73 @@ function Set-ExcelAlignment {
     Format-ExcelOutput -Data $result -AsJson:$AsJson
 }
 
+function Merge-ExcelRange {
+    <#
+    .SYNOPSIS  Merge cells in a range.
+    .PARAMETER WorkbookPath  Path to the Excel workbook.
+    .PARAMETER SheetName     Target worksheet name.
+    .PARAMETER Range         Range address to merge (e.g. "A1:D1").
+    .PARAMETER Across        Merge each row separately instead of the entire range.
+    .PARAMETER AsJson        Return JSON string.
+    .EXAMPLE   Merge-ExcelRange -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Range "A1:D1" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Range,
+        [switch]$Across,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $rng = $ws.Range($Range)
+
+    $app.DisplayAlerts = $false
+    if ($Across) { $rng.Merge($true) } else { $rng.Merge() }
+    $app.DisplayAlerts = $true
+
+    $result = @{
+        status = 'ok'
+        range  = $Range
+        merged = $true
+        across = $Across.IsPresent
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Split-ExcelRange {
+    <#
+    .SYNOPSIS  Unmerge (split) previously merged cells.
+    .PARAMETER WorkbookPath  Path to the Excel workbook.
+    .PARAMETER SheetName     Target worksheet name.
+    .PARAMETER Range         Range address to unmerge.
+    .PARAMETER AsJson        Return JSON string.
+    .EXAMPLE   Split-ExcelRange -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Range "A1:D1" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Range,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $rng = $ws.Range($Range)
+
+    $rng.UnMerge()
+
+    $result = @{
+        status = 'ok'
+        range  = $Range
+        merged = $false
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
 # ═══════════════════════════════════════════════════════════════════════════
 # PRIVATE HELPER: Color conversion
 # ═══════════════════════════════════════════════════════════════════════════

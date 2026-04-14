@@ -1,9 +1,9 @@
 @{
     RootModule        = 'ExcelPOSH.psm1'
-    ModuleVersion     = '2.0.0'
+    ModuleVersion     = '3.0.0'
     GUID              = 'b2c3d4e5-f6a7-8901-bcde-f23456789012'
     Author            = 'Excel-POSH'
-    Description       = 'PowerShell Excel Workbook Automation via COM — 84 functions for workbook, worksheet, table, formatting, metadata, filter/sort, conditional format, data validation, view, hyperlink, clipboard, print, image/shape, pivot table, chart, import, and sparkline operations'
+    Description       = 'PowerShell Excel Workbook Automation via COM — 104 functions for workbook, worksheet, table, formatting, structural, calculation, metadata, filter/sort, conditional format, data validation, view, hyperlink, clipboard, print, image/shape, pivot table, chart, import, and sparkline operations'
     PowerShellVersion = '5.1'
 
     FunctionsToExport = @(
@@ -124,6 +124,42 @@
         'Add-ExcelSparkline'
         'Get-ExcelSparkline'
         'Remove-ExcelSparkline'
+
+        # Structural (4) — NEW v3.0
+        'Add-ExcelRow'
+        'Remove-ExcelRow'
+        'Add-ExcelColumn'
+        'Remove-ExcelColumn'
+
+        # Calculation (4) — NEW v3.0
+        'Set-ExcelPerformanceMode'
+        'Invoke-ExcelCalculate'
+        'Invoke-ExcelFunction'
+        'Invoke-ExcelEvaluate'
+
+        # Filter & Sort — additions v3.0
+        'Remove-ExcelDuplicates'
+        'Invoke-ExcelAdvancedFilter'
+
+        # Formatting — additions v3.0
+        'Merge-ExcelRange'
+        'Split-ExcelRange'
+
+        # Worksheet — additions v3.0
+        'Get-ExcelSpecialCells'
+
+        # Workbook — additions v3.0
+        'Invoke-ExcelMacro'
+
+        # Chart — additions v3.0
+        'Set-ExcelChartSeries'
+        'Set-ExcelChartAxis'
+        'Set-ExcelChartLegend'
+        'Set-ExcelChartDataLabels'
+
+        # Pivot Table — additions v3.0
+        'Set-ExcelPivotField'
+        'Add-ExcelPivotCalculatedField'
     )
 
     CmdletsToExport   = @()

@@ -249,3 +249,89 @@ function Get-ExcelAutoFilter {
     }
     Format-ExcelOutput -Data $result -AsJson:$AsJson
 }
+
+function Remove-ExcelDuplicates {
+    <#
+    .SYNOPSIS  Remove duplicate rows from a range.
+    .PARAMETER WorkbookPath  Path to the Excel workbook.
+    .PARAMETER SheetName     Target worksheet name.
+    .PARAMETER Range         Range address (e.g. "A1:D100").
+    .PARAMETER Columns       1-based column indices within the range to compare for duplicates.
+    .PARAMETER HasHeader     Indicates the first row is a header (default $true).
+    .PARAMETER AsJson        Return JSON string.
+    .EXAMPLE   Remove-ExcelDuplicates -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Range "A1:D100" -Columns 1,3 -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Range,
+        [Parameter(Mandatory)][int[]]$Columns,
+        [switch]$HasHeader,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $rng = $ws.Range($Range)
+
+    $headerVal = if ($HasHeader) { [int]$script:XL_YES_NO_GUESS.yes } else { [int]$script:XL_YES_NO_GUESS.no }
+    $rng.RemoveDuplicates($Columns, $headerVal)
+
+    $result = @{
+        status    = 'ok'
+        range     = $Range
+        hasHeader = $HasHeader.IsPresent
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Invoke-ExcelAdvancedFilter {
+    <#
+    .SYNOPSIS  Apply Excel Advanced Filter to a range.
+    .PARAMETER WorkbookPath   Path to the Excel workbook.
+    .PARAMETER SheetName      Target worksheet name.
+    .PARAMETER Range          Source data range.
+    .PARAMETER Action         FilterInPlace or CopyToRange.
+    .PARAMETER CriteriaRange  Range containing filter criteria.
+    .PARAMETER CopyToRange    Destination range (required for CopyToRange action).
+    .PARAMETER UniqueOnly     Return only unique records.
+    .PARAMETER AsJson         Return JSON string.
+    .EXAMPLE   Invoke-ExcelAdvancedFilter -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Range "A1:D100" -Action FilterInPlace -UniqueOnly -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Range,
+        [Parameter(Mandatory)]
+        [ValidateSet('FilterInPlace','CopyToRange')]
+        [string]$Action,
+        [string]$CriteriaRange,
+        [string]$CopyToRange,
+        [switch]$UniqueOnly,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $rng = $ws.Range($Range)
+
+    $actionVal = [int]$script:XL_FILTER_ACTION[$Action.ToLower()]
+
+    $criteria = if (-not [string]::IsNullOrWhiteSpace($CriteriaRange)) { $ws.Range($CriteriaRange) } else { [System.Reflection.Missing]::Value }
+    $copyTo   = if (-not [string]::IsNullOrWhiteSpace($CopyToRange))   { $ws.Range($CopyToRange)   } else { [System.Reflection.Missing]::Value }
+
+    if ($Action -eq 'CopyToRange' -and [string]::IsNullOrWhiteSpace($CopyToRange)) {
+        throw 'CopyToRange parameter is required when Action is CopyToRange.'
+    }
+
+    $rng.AdvancedFilter($actionVal, $criteria, $copyTo, $UniqueOnly.IsPresent)
+
+    $result = @{
+        status = 'ok'
+        action = $Action
+        unique = $UniqueOnly.IsPresent
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}

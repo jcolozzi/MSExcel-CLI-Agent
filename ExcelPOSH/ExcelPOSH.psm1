@@ -153,6 +153,51 @@ $script:XL_YES_NO_GUESS = @{
     no    = 2  # xlNo
 }
 
+# xlCalculation — calculation mode
+$script:XL_CALCULATION = @{
+    automatic     = -4105  # xlCalculationAutomatic
+    manual        = -4135  # xlCalculationManual
+    semiautomatic = 2      # xlCalculationSemiautomatic
+}
+
+# xlCellType — SpecialCells type
+$script:XL_CELL_TYPE = @{
+    blanks    = 4      # xlCellTypeBlanks
+    constants = 2      # xlCellTypeConstants
+    formulas  = -4123  # xlCellTypeFormulas
+    lastcell  = 11     # xlCellTypeLastCell
+    visible   = 12     # xlCellTypeVisible
+    comments  = -4144  # xlCellTypeComments
+}
+
+# xlFilterAction — AdvancedFilter action
+$script:XL_FILTER_ACTION = @{
+    filterinplace = 1  # xlFilterInPlace
+    copytorange   = 2  # xlFilterCopy
+}
+
+# xlAxisType — chart axis type
+$script:XL_AXIS_TYPE = @{
+    category   = 1  # xlCategory
+    value      = 2  # xlValue
+    seriesaxis = 3  # xlSeriesAxis
+}
+
+# xlAxisGroup — chart axis group
+$script:XL_AXIS_GROUP = @{
+    primary   = 1  # xlPrimary
+    secondary = 2  # xlSecondary
+}
+
+# xlLegendPosition — chart legend position
+$script:XL_LEGEND_POSITION = @{
+    bottom = -4107  # xlLegendPositionBottom
+    corner = 2      # xlLegendPositionCorner
+    left   = -4131  # xlLegendPositionLeft
+    right  = -4152  # xlLegendPositionRight
+    top    = -4160  # xlLegendPositionTop
+}
+
 # ═══════════════════════════════════════════════════════════════════════════
 # SESSION STATE
 # ═══════════════════════════════════════════════════════════════════════════
@@ -182,6 +227,9 @@ foreach ($file in (Get-ChildItem -Path "$PSScriptRoot\Public\*.ps1" -ErrorAction
 
 Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
     if ($null -ne $script:ExcelSession -and $null -ne $script:ExcelSession.App) {
+        try { $script:ExcelSession.App.ScreenUpdating = $true } catch {}
+        try { $script:ExcelSession.App.Calculation = -4105 } catch {}   # xlCalculationAutomatic
+        try { $script:ExcelSession.App.EnableEvents = $true } catch {}
         try { $script:ExcelSession.App.DisplayAlerts = $false } catch {}
         try { $script:ExcelSession.App.Quit() } catch {}
         try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($script:ExcelSession.App) } catch {}

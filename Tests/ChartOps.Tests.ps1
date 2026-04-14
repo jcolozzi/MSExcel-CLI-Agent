@@ -139,3 +139,117 @@ Describe 'Export-ExcelChart' {
         (Get-Command Export-ExcelChart).Parameters['AsJson'] | Should -Not -BeNullOrEmpty
     }
 }
+
+Describe 'Set-ExcelChartSeries' {
+    It 'Has CmdletBinding' {
+        (Get-Command Set-ExcelChartSeries).CmdletBinding | Should -BeTrue
+    }
+    It 'Has mandatory ChartName parameter' {
+        $p = (Get-Command Set-ExcelChartSeries).Parameters['ChartName']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has mandatory SeriesIndex parameter' {
+        $p = (Get-Command Set-ExcelChartSeries).Parameters['SeriesIndex']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has optional Name/Values/XValues/FillColor/LineColor/LineWeight params' {
+        $cmd = Get-Command Set-ExcelChartSeries
+        $cmd.Parameters['Name']       | Should -Not -BeNullOrEmpty
+        $cmd.Parameters['Values']     | Should -Not -BeNullOrEmpty
+        $cmd.Parameters['XValues']    | Should -Not -BeNullOrEmpty
+        $cmd.Parameters['FillColor']  | Should -Not -BeNullOrEmpty
+        $cmd.Parameters['LineColor']  | Should -Not -BeNullOrEmpty
+        $cmd.Parameters['LineWeight'] | Should -Not -BeNullOrEmpty
+    }
+    It 'Has AsJson switch' {
+        (Get-Command Set-ExcelChartSeries).Parameters['AsJson'].SwitchParameter | Should -BeTrue
+    }
+}
+
+Describe 'Set-ExcelChartAxis' {
+    It 'Has CmdletBinding' {
+        (Get-Command Set-ExcelChartAxis).CmdletBinding | Should -BeTrue
+    }
+    It 'Has AxisType with ValidateSet' {
+        $p = (Get-Command Set-ExcelChartAxis).Parameters['AxisType']
+        $p | Should -Not -BeNullOrEmpty
+        $vs = $p.Attributes.Where({ $_ -is [System.Management.Automation.ValidateSetAttribute] })
+        $vs | Should -Not -BeNullOrEmpty
+        $vs.ValidValues | Should -Contain 'Category'
+        $vs.ValidValues | Should -Contain 'Value'
+        $vs.ValidValues | Should -Contain 'SeriesAxis'
+    }
+    It 'Has AxisGroup with ValidateSet defaulting to Primary' {
+        $p = (Get-Command Set-ExcelChartAxis).Parameters['AxisGroup']
+        $p | Should -Not -BeNullOrEmpty
+        $vs = $p.Attributes.Where({ $_ -is [System.Management.Automation.ValidateSetAttribute] })
+        $vs.ValidValues | Should -Contain 'Primary'
+        $vs.ValidValues | Should -Contain 'Secondary'
+    }
+    It 'Has optional Title/MinimumScale/MaximumScale/NumberFormat params' {
+        $cmd = Get-Command Set-ExcelChartAxis
+        $cmd.Parameters['Title']        | Should -Not -BeNullOrEmpty
+        $cmd.Parameters['MinimumScale'] | Should -Not -BeNullOrEmpty
+        $cmd.Parameters['MaximumScale'] | Should -Not -BeNullOrEmpty
+        $cmd.Parameters['NumberFormat'] | Should -Not -BeNullOrEmpty
+    }
+    It 'Has AsJson switch' {
+        (Get-Command Set-ExcelChartAxis).Parameters['AsJson'].SwitchParameter | Should -BeTrue
+    }
+}
+
+Describe 'Set-ExcelChartLegend' {
+    It 'Has CmdletBinding' {
+        (Get-Command Set-ExcelChartLegend).CmdletBinding | Should -BeTrue
+    }
+    It 'Has mandatory Show parameter' {
+        $p = (Get-Command Set-ExcelChartLegend).Parameters['Show']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has Position with ValidateSet' {
+        $p = (Get-Command Set-ExcelChartLegend).Parameters['Position']
+        $p | Should -Not -BeNullOrEmpty
+        $vs = $p.Attributes.Where({ $_ -is [System.Management.Automation.ValidateSetAttribute] })
+        $vs | Should -Not -BeNullOrEmpty
+        $vs.ValidValues | Should -Contain 'Bottom'
+        $vs.ValidValues | Should -Contain 'Top'
+        $vs.ValidValues | Should -Contain 'Left'
+        $vs.ValidValues | Should -Contain 'Right'
+        $vs.ValidValues | Should -Contain 'Corner'
+    }
+    It 'Has AsJson switch' {
+        (Get-Command Set-ExcelChartLegend).Parameters['AsJson'].SwitchParameter | Should -BeTrue
+    }
+}
+
+Describe 'Set-ExcelChartDataLabels' {
+    It 'Has CmdletBinding' {
+        (Get-Command Set-ExcelChartDataLabels).CmdletBinding | Should -BeTrue
+    }
+    It 'Has mandatory SeriesIndex parameter' {
+        $p = (Get-Command Set-ExcelChartDataLabels).Parameters['SeriesIndex']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has optional ShowValue/ShowCategory/ShowPercentage/NumberFormat params' {
+        $cmd = Get-Command Set-ExcelChartDataLabels
+        $cmd.Parameters['ShowValue']      | Should -Not -BeNullOrEmpty
+        $cmd.Parameters['ShowCategory']   | Should -Not -BeNullOrEmpty
+        $cmd.Parameters['ShowPercentage'] | Should -Not -BeNullOrEmpty
+        $cmd.Parameters['NumberFormat']   | Should -Not -BeNullOrEmpty
+    }
+    It 'Has Position with ValidateSet' {
+        $p = (Get-Command Set-ExcelChartDataLabels).Parameters['Position']
+        $p | Should -Not -BeNullOrEmpty
+        $vs = $p.Attributes.Where({ $_ -is [System.Management.Automation.ValidateSetAttribute] })
+        $vs | Should -Not -BeNullOrEmpty
+        $vs.ValidValues | Should -Contain 'Center'
+        $vs.ValidValues | Should -Contain 'BestFit'
+    }
+    It 'Has AsJson switch' {
+        (Get-Command Set-ExcelChartDataLabels).Parameters['AsJson'].SwitchParameter | Should -BeTrue
+    }
+}

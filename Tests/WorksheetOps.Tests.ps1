@@ -175,3 +175,40 @@ Describe 'Remove-ExcelNamedRange' {
         (Get-Command Remove-ExcelNamedRange).Parameters['Name'] | Should -Not -BeNullOrEmpty
     }
 }
+
+Describe 'Get-ExcelSpecialCells' {
+    It 'Has CmdletBinding' {
+        (Get-Command Get-ExcelSpecialCells).CmdletBinding | Should -BeTrue
+    }
+    It 'Has mandatory WorkbookPath parameter' {
+        $p = (Get-Command Get-ExcelSpecialCells).Parameters['WorkbookPath']
+        $p | Should -Not -BeNullOrEmpty
+        $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] }).Mandatory | Should -BeTrue
+    }
+    It 'Has mandatory SheetName parameter' {
+        $p = (Get-Command Get-ExcelSpecialCells).Parameters['SheetName']
+        $p | Should -Not -BeNullOrEmpty
+    }
+    It 'Has mandatory CellType parameter with ValidateSet' {
+        $p = (Get-Command Get-ExcelSpecialCells).Parameters['CellType']
+        $p | Should -Not -BeNullOrEmpty
+        $vs = $p.Attributes.Where({ $_ -is [System.Management.Automation.ValidateSetAttribute] })
+        $vs | Should -Not -BeNullOrEmpty
+        $vs.ValidValues | Should -Contain 'Blanks'
+        $vs.ValidValues | Should -Contain 'Formulas'
+        $vs.ValidValues | Should -Contain 'LastCell'
+        $vs.ValidValues | Should -Contain 'Constants'
+        $vs.ValidValues | Should -Contain 'Visible'
+        $vs.ValidValues | Should -Contain 'Comments'
+        $vs.ValidValues | Should -Contain 'Errors'
+    }
+    It 'Range is optional' {
+        $p = (Get-Command Get-ExcelSpecialCells).Parameters['Range']
+        $p | Should -Not -BeNullOrEmpty
+        $mandatory = $p.Attributes.Where({ $_ -is [System.Management.Automation.ParameterAttribute] -and $_.Mandatory })
+        $mandatory | Should -BeNullOrEmpty
+    }
+    It 'Has AsJson switch' {
+        (Get-Command Get-ExcelSpecialCells).Parameters['AsJson'].SwitchParameter | Should -BeTrue
+    }
+}

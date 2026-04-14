@@ -345,3 +345,41 @@ function Copy-ExcelWorkbook {
     }
     Format-ExcelOutput -Data $result -AsJson:$AsJson
 }
+
+function Invoke-ExcelMacro {
+    <#
+    .SYNOPSIS  Run a VBA macro in the workbook.
+    .PARAMETER WorkbookPath  Path to the Excel workbook (.xlsm or .xlsb).
+    .PARAMETER MacroName     Full macro name (e.g. "Sheet1.MyMacro" or just "MyMacro").
+    .PARAMETER Arguments     Up to 30 arguments to pass to the macro.
+    .PARAMETER AsJson        Return JSON string.
+    .EXAMPLE   Invoke-ExcelMacro -WorkbookPath C:\data.xlsm -MacroName "CleanData" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$MacroName,
+        [ValidateCount(0, 30)][object[]]$Arguments,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+
+    # Build argument list: macro name + up to 30 args
+    $runArgs = @($MacroName) + @($Arguments)
+
+    $result = $app.GetType().InvokeMember(
+        'Run',
+        [System.Reflection.BindingFlags]::InvokeMethod,
+        $null,
+        $app,
+        $runArgs
+    )
+
+    $output = @{
+        status    = 'ok'
+        macroName = $MacroName
+        result    = $result
+    }
+    Format-ExcelOutput -Data $output -AsJson:$AsJson
+}
