@@ -88,7 +88,8 @@ C:\Users\%USERNAME%\AppData\Roaming\Code\User\prompts\
 
 Copy both `.md` files into a `.github\agents\` folder in your workspace root. VS Code automatically detects any `.md` files in that folder as custom agents.
 
-> **Note:** VS Code detects any `.md` files in the `.github/agents/` folder of your workspace as custom agents.
+> [!Note]
+> VS Code detects any `.md` files in the `.github/agents/` folder of your workspace as custom agents.
 
 ### 4 — Update the module path inside the agent files
 
