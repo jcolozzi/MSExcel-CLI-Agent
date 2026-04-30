@@ -1,16 +1,19 @@
-# MSExcel-agent
+# MSExcel-CLI-Agent
 
 **ExcelPOSH** is a PowerShell module providing 84 functions for Excel workbook automation via COM.
 
 No MCP server needed — A custom excel-dev agent calls functions directly via terminal.
 
-The agent will use the **ExcelPOSH** module to interact with Excel workbooks via COM automation.
+The CLI-Agent will use the **ExcelPOSH** module to interact with Excel workbooks via COM automation.
 
 Setup:
 1. Clone or download the repo
-2. Put the two .md files in C:\Users\\%USERNAME%\AppData\Roaming\Code\User\prompts folder (user level access) or create a .github\agents folder in your project folder and save the two .md files in the agent folder (_VS Code detects any .md files in the .github/agents folder of your workspace as custom agents_)
+2. Put the two .md files in C:\Users\\%USERNAME%\AppData\Roaming\Code\User\prompts folder (user level access) or create a .github\agents folder in your project folder and save the two .md files in the agent folder 
 3. Replace the path in the .md files to the location of the **ExcelPOSH.psd1** module on your computer
 4. Select excel-dev from the agent picker before prompting
+
+>[!Note]
+>_VS Code detects any .md files in the .github/agents folder of your workspace as custom agents_
 
 ## Module Structure
 
