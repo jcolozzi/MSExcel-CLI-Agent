@@ -59,21 +59,7 @@ VS Code Copilot Chat (agent mode)
 git clone https://github.com/jcolozzi/MSExcel-CLI-Agent.git
 ```
 
-### 2 — Import the module in your VS Code terminal
-
-Open the integrated terminal in VS Code and import the module once per session (or add to your `$PROFILE`):
-
-```powershell
-Import-Module "C:\path\to\MSExcel-agent\ExcelPOSH\ExcelPOSH.psd1"
-```
-
-Verify it loaded:
-
-```powershell
-Get-Command -Module ExcelPOSH | Measure-Object  # should show 84
-```
-
-### 3 — Install the agent instructions
+### 2 — Install the agent instructions
 
 Choose **one** of the following:
 
@@ -91,7 +77,7 @@ Copy both `.md` files into a `.github\agents\` folder in your workspace root. VS
 > [!Note]
 > VS Code detects any `.md` files in the `.github/agents/` folder of your workspace as custom agents.
 
-### 4 — Update the module path inside the agent files
+### 3 — Update the module path inside the agent files
 
 Open each `.md` agent file and replace the placeholder path with the actual path to `ExcelPOSH.psd1` on your machine:
 
