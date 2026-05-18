@@ -1,70 +1,181 @@
-# MSExcel-agent
+# MSExcel-CLI-Agent
 
-**ExcelPOSH** is a PowerShell module providing 84 functions for Excel workbook automation via COM.
+> **Automate Microsoft Excel from plain English inside VS Code — no MCP server, no Python, no extra processes.**
 
-No MCP server needed — A custom excel-dev agent calls functions directly via terminal.
+![Platform: Windows](https://img.shields.io/badge/platform-Windows-blue?logo=windows)
+![PowerShell: 5.1+](https://img.shields.io/badge/PowerShell-5.1%2B-blue?logo=powershell)
+![VS Code](https://img.shields.io/badge/VS%20Code-GitHub%20Copilot%20Chat-blueviolet?logo=visual-studio-code)
+![Functions: 84](https://img.shields.io/badge/functions-84-brightgreen)
+![Module Version](https://img.shields.io/badge/version-1.0.0-orange)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
-The agent will use the **ExcelPOSH** module to interact with Excel workbooks via COM automation.
+## What is this?
 
-Setup:
-1. Clone or download the repo
-2. Put the two .md files in C:\Users\\%USERNAME%\AppData\Roaming\Code\User\prompts folder (user level access) or create a .github\agents folder in your project folder and save the two .md files in the agent folder (_VS Code detects any .md files in the .github/agents folder of your workspace as custom agents_)
-3. Replace the path in the .md files to the location of the **ExcelPOSH.psd1** module on your computer
-4. Select excel-dev from the agent picker before prompting
+**MSExcel-CLI-Agent** is a VS Code agent (powered by GitHub Copilot Chat) that lets you talk to Microsoft Excel in plain language. You describe what you want and the agent translates it into PowerShell commands that manipulate your `.xlsx` / `.xlsm` workbooks live via COM — no manual VBA editing required.
 
-## Module Structure
-
+```text
+You:   "Create a table in Sheet1 with columns ID, Name, Email and add 100 rows of sample data"
+Agent: → New-ExcelTable → confirms success
 ```
+
+The **ExcelPOSH** module (included) is a comprehensive PowerShell interface to the Excel Object Model, providing **84 public functions** covering workbooks, worksheets, tables, formatting, filtering, pivot tables, charts, and data manipulation.
+
+## How it works
+
+```text
+VS Code Copilot Chat (agent mode)
+        │
+        ▼
+  excel-dev agent (.md instructions)
+        │  describes which PowerShell command to run
+        ▼
+  ExcelPOSH module  (imported in the VS Code terminal)
+        │  COM calls via Excel Object Model
+        ▼
+  Microsoft Excel (.xlsx / .xlsm)
+```
+
+- **No separate server** — the module runs directly in the VS Code integrated terminal.
+- **No Python / Node** — pure PowerShell 5.1+ on Windows.
+- **Full COM access** — everything you can do from VBA, you can do from the agent.
+- **-WhatIf / -Confirm** — all state-changing functions support PowerShell's standard risk-mitigation flags.
+- **Pester tests** — 18 test files cover every public command group.
+
+## Prerequisites
+
+| Requirement | Details |
+| --- | --- |
+| **OS** | Windows 10 / 11 (COM automation is Windows-only) |
+| **Microsoft Excel** | Excel 2016, 2019, 2021, or Microsoft 365 (desktop) |
+| **PowerShell** | 5.1 (Windows PowerShell) **or** PowerShell 7+ |
+| **VS Code** | Latest stable, with the **GitHub Copilot Chat** extension |
+| **Copilot** | An active GitHub Copilot subscription |
+
+## Setup
+
+### 1 — Clone the repo
+
+```powershell
+git clone https://github.com/jcolozzi/MSExcel-CLI-Agent.git
+```
+
+### 2 — Import the module in your VS Code terminal
+
+Open the integrated terminal in VS Code and import the module once per session (or add to your `$PROFILE`):
+
+```powershell
+Import-Module "C:\path\to\MSExcel-agent\ExcelPOSH\ExcelPOSH.psd1"
+```
+
+Verify it loaded:
+
+```powershell
+Get-Command -Module ExcelPOSH | Measure-Object  # should show 84
+```
+
+### 3 — Install the agent instructions
+
+Choose **one** of the following:
+
+### Option A — User-level (available in every workspace)
+
+Copy both `.md` files from the repo root to:
+
+```text
+C:\Users\%USERNAME%\AppData\Roaming\Code\User\prompts\
+```
+
+### Option B — Workspace-level (scoped to this project)
+
+Copy both `.md` files into a `.github\agents\` folder in your workspace root. VS Code automatically detects any `.md` files in that folder as custom agents.
+
+> **Note:** VS Code detects any `.md` files in the `.github/agents/` folder of your workspace as custom agents.
+
+### 4 — Update the module path inside the agent files
+
+Open each `.md` agent file and replace the placeholder path with the actual path to `ExcelPOSH.psd1` on your machine:
+
+```text
+# Before
+Import-Module "C:\path\to\ExcelPOSH\ExcelPOSH.psd1"
+
+# After (example)
+Import-Module "C:\Projects\MSExcel-agent\ExcelPOSH\ExcelPOSH.psd1"
+```
+
+### 5 — Select the agent and start prompting
+
+In VS Code Copilot Chat, click the agent picker and choose **excel-dev**. Open (or have the agent open) an `.xlsx` or `.xlsm` file, then start describing what you want.
+
+## Usage examples
+
+| Prompt | Functions called |
+| --- | --- |
+| "Create a new Excel workbook and add three sheets" | `New-ExcelWorkbook`, `New-ExcelWorksheet` |
+| "List all tables in the current workbook" | `Get-ExcelTable` |
+| "Create a table called Customers with columns ID, Name, Email" | `New-ExcelTable` |
+| "Add 100 rows of sample data to the Customers table" | `Add-ExcelTableRow` |
+| "Apply bold and blue font to the header row" | `Set-ExcelCellFormat` |
+| "Freeze the first row and first column" | `Set-ExcelFreezePane` |
+| "Filter the Sales column to show only values > 1000" | `Set-ExcelAutoFilter` |
+| "Sort the data by Date descending" | `Sort-ExcelRange` |
+| "Create a pivot table from the data" | `New-ExcelPivotTable` |
+| "Export the current sheet to PDF" | `Export-ExcelToPdf` |
+| "What would happen if I created a new worksheet? (dry run)" | `New-ExcelWorksheet -WhatIf` |
+
+## Project structure
+
+```text
 MSExcel-agent/
-  ExcelPOSH/
-    ExcelPOSH.psd1              # Module manifest — 84 public functions
-    ExcelPOSH.psm1              # Root: constants, session state, dot-sourcing, exit handler
-    Private/
-      Session.ps1               # COM session management (5 functions)
-      Utilities.ps1             # Value conversion & output formatting (2 functions)
-    Public/
-      WorkbookOps.ps1           # Workbook lifecycle (7 functions)
-      WorksheetOps.ps1          # Worksheet & range operations (14 functions)
-      TableOps.ps1              # ListObject/Table operations (9 functions)
-      FormattingOps.ps1         # Cell formatting (5 functions + ConvertTo-RGBColor helper)
-      MetadataOps.ps1           # Properties, connections, protection, comments (8 functions)
-      FilterSortOps.ps1         # AutoFilter & sorting (4 functions)
-      ConditionalFormatOps.ps1  # Conditional formatting rules (4 functions)
-      DataValidationOps.ps1     # Data validation (3 functions)
-      ViewOps.ps1               # Freeze panes, visibility, grouping (6 functions)
-      HyperlinkOps.ps1          # Hyperlinks (3 functions)
-      ClipboardOps.ps1          # Copy, replace, move ranges (3 functions)
-      PrintOps.ps1              # Page setup & PDF export (3 functions)
-      ImageShapeOps.ps1         # Images & shapes (3 functions)
-      PivotTableOps.ps1         # Pivot tables (3 functions)
-      ChartOps.ps1              # Charts (4 functions)
-      ImportOps.ps1             # CSV & text import (2 functions)
-      SparklineOps.ps1          # Sparklines (3 functions)
-  Tests/
-    ExcelPOSH.Module.Tests.ps1  # Module loading & export validation
-    WorkbookOps.Tests.ps1       # Workbook function tests
-    WorksheetOps.Tests.ps1      # Worksheet & range function tests
-    TableOps.Tests.ps1          # Table function tests
-    FormattingOps.Tests.ps1     # Formatting function tests
-    MetadataOps.Tests.ps1       # Metadata function tests
-    FilterSortOps.Tests.ps1     # Filter & sort tests
-    ConditionalFormatOps.Tests.ps1 # Conditional format tests
-    DataValidationOps.Tests.ps1 # Data validation tests
-    ViewOps.Tests.ps1           # View ops tests
-    HyperlinkOps.Tests.ps1      # Hyperlink tests
-    ClipboardOps.Tests.ps1      # Clipboard tests
-    PrintOps.Tests.ps1          # Print & page setup tests
-    ImageShapeOps.Tests.ps1     # Image & shape tests
-    PivotTableOps.Tests.ps1     # Pivot table tests
-    ChartOps.Tests.ps1          # Chart tests
-    ImportOps.Tests.ps1         # Import tests
-    SparklineOps.Tests.ps1      # Sparkline tests
+├── ExcelPOSH/              # PowerShell module (the engine)
+│   ├── ExcelPOSH.psd1      # Module manifest (v1.0.0, PS 5.1+, Desktop + Core)
+│   ├── ExcelPOSH.psm1      # Module loader
+│   ├── Public/             # 18 files — one per command category
+│   │   ├── WorkbookOps.ps1
+│   │   ├── WorksheetOps.ps1
+│   │   ├── TableOps.ps1
+│   │   ├── FormattingOps.ps1
+│   │   ├── MetadataOps.ps1
+│   │   ├── FilterSortOps.ps1
+│   │   ├── ConditionalFormatOps.ps1
+│   │   ├── DataValidationOps.ps1
+│   │   ├── ViewOps.ps1
+│   │   ├── HyperlinkOps.ps1
+│   │   ├── ClipboardOps.ps1
+│   │   ├── PrintOps.ps1
+│   │   ├── ImageShapeOps.ps1
+│   │   ├── PivotTableOps.ps1
+│   │   ├── ChartOps.ps1
+│   │   ├── ImportOps.ps1
+│   │   └── SparklineOps.ps1
+│   └── Private/            # Internal helpers (COM session, utilities, etc.)
+├── Tests/                  # Pester test suite — 18 test files
+│   ├── ExcelPOSH.Module.Tests.ps1
+│   ├── WorkbookOps.Tests.ps1
+│   ├── WorksheetOps.Tests.ps1
+│   ├── TableOps.Tests.ps1
+│   ├── FormattingOps.Tests.ps1
+│   └── ...
+├── excel-dev.md            # Agent instructions (the Copilot Chat prompt)
+└── README.md
 ```
 
-## Available Functions (84 public)
+## Running the tests
+
+```powershell
+# From the repo root
+Invoke-Pester .\Tests\ -Output Detailed
+```
+
+> Requires [Pester](https://github.com/pester/Pester) 5.x: `Install-Module Pester -MinimumVersion 5.0 -Force`
+
+## Function reference
+
+<details>
+  <summary><strong>View all 84 public functions</strong></summary>
 
 | Category | Functions |
-|----------|-----------|
+| --- | --- |
 | **Workbook** | `Open-ExcelWorkbook`, `Close-ExcelWorkbook`, `New-ExcelWorkbook`, `Save-ExcelWorkbook`, `Get-ExcelWorkbookInfo`, `Repair-ExcelWorkbook`, `Copy-ExcelWorkbook` |
 | **Worksheet** | `Get-ExcelWorksheet`, `New-ExcelWorksheet`, `Remove-ExcelWorksheet`, `Rename-ExcelWorksheet`, `Copy-ExcelWorksheet`, `Move-ExcelWorksheet` |
 | **Range** | `Get-ExcelRange`, `Set-ExcelRange`, `Clear-ExcelRange`, `Get-ExcelUsedRange`, `Find-ExcelValue` |
@@ -88,3 +199,13 @@ MSExcel-agent/
 | **Protection** | `Get-ExcelProtection`, `Set-ExcelProtection` |
 | **Comments** | `Get-ExcelComment`, `Set-ExcelComment` |
 | **Tips** | `Get-ExcelTip` |
+
+</details>
+
+All state-changing functions support `-WhatIf` and `-Confirm` via PowerShell's standard `ShouldProcess` mechanism.
+
+## Contributing
+
+Pull requests are welcome. For significant changes, open an issue first to discuss what you would like to change. Please include or update Pester tests for any new or modified functions.
+
+## Credits

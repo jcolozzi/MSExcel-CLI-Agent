@@ -205,6 +205,7 @@ $script:XL_LEGEND_POSITION = @{
 $script:ExcelSession = @{
     App          = $null   # COM Excel.Application object
     WorkbookPath = $null   # Currently open workbook path (resolved)
+    OwnsApp      = $false  # $true when we created the COM instance; controls Quit() on exit
 }
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -227,14 +228,18 @@ foreach ($file in (Get-ChildItem -Path "$PSScriptRoot\Public\*.ps1" -ErrorAction
 
 Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
     if ($null -ne $script:ExcelSession -and $null -ne $script:ExcelSession.App) {
-        try { $script:ExcelSession.App.ScreenUpdating = $true } catch {}
-        try { $script:ExcelSession.App.Calculation = -4105 } catch {}   # xlCalculationAutomatic
-        try { $script:ExcelSession.App.EnableEvents = $true } catch {}
-        try { $script:ExcelSession.App.DisplayAlerts = $false } catch {}
-        try { $script:ExcelSession.App.Quit() } catch {}
+        # Only restore settings and Quit if we created the instance
+        if ($script:ExcelSession.OwnsApp) {
+            try { $script:ExcelSession.App.ScreenUpdating = $true } catch {}
+            try { $script:ExcelSession.App.Calculation = -4105 } catch {}   # xlCalculationAutomatic
+            try { $script:ExcelSession.App.EnableEvents = $true } catch {}
+            try { $script:ExcelSession.App.DisplayAlerts = $false } catch {}
+            try { $script:ExcelSession.App.Quit() } catch {}
+        }
         try { [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($script:ExcelSession.App) } catch {}
         $script:ExcelSession.App          = $null
         $script:ExcelSession.WorkbookPath = $null
+        $script:ExcelSession.OwnsApp      = $false
     }
 } | Out-Null
 
