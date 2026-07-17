@@ -6,3 +6,6 @@ todo.md
 # Smoke test files
 _smoke_probe.ps1
 _smoke_probe2.ps1
+
+# Local graph sample builder (the generated sample + graph output are committed; the builder is not)
+misc/Build-ExcelGraphSample.ps1

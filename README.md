@@ -5,7 +5,7 @@
 ![Platform: Windows](https://img.shields.io/badge/platform-Windows-blue?logo=windows)
 ![PowerShell: 5.1+](https://img.shields.io/badge/PowerShell-5.1%2B-blue?logo=powershell)
 ![VS Code](https://img.shields.io/badge/VS%20Code-GitHub%20Copilot%20Chat-blueviolet?logo=visual-studio-code)
-![Functions: 144](https://img.shields.io/badge/functions-144-brightgreen)
+![Functions: 147](https://img.shields.io/badge/functions-147-brightgreen)
 ![Module Version](https://img.shields.io/badge/version-1.0.0-orange)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
@@ -18,7 +18,7 @@ You:   "Create a table in Sheet1 with columns ID, Name, Email and add 100 rows o
 Agent: → New-ExcelTable → confirms success
 ```
 
-The **ExcelPOSH** module (included) is a comprehensive PowerShell interface to the Excel Object Model, providing **144 public functions** covering workbooks, worksheets, tables, formatting, filtering, pivot tables, charts, Power Query, the Data Model, slicers, and data manipulation.
+The **ExcelPOSH** module (included) is a comprehensive PowerShell interface to the Excel Object Model, providing **147 public functions** covering workbooks, worksheets, tables, formatting, filtering, pivot tables, charts, Power Query, the Data Model, slicers, data manipulation, and dependency & data-relationship graphing.
 
 ## How it works
 
@@ -40,7 +40,8 @@ VS Code Copilot Chat (agent mode)
 - **No Python / Node** — pure PowerShell 5.1+ on Windows.
 - **Full COM access** — everything you can do from VBA, you can do from the agent.
 - **-WhatIf / -Confirm** — all state-changing functions support PowerShell's standard risk-mitigation flags.
-- **Pester tests** — 25 test files cover every public command group.
+- **Dependency & data graph** — `Export-ExcelGraph` maps how everything in a workbook connects (structure *and* data relationships) and renders it as an interactive HTML graph.
+- **Pester tests** — 26 test files cover every public command group.
 
 ## Agents
 
@@ -82,7 +83,7 @@ Import-Module "C:\path\to\MSExcel-agent\ExcelPOSH\ExcelPOSH.psd1"
 Verify it loaded:
 
 ```powershell
-Get-Command -Module ExcelPOSH | Measure-Object  # should show 144
+Get-Command -Module ExcelPOSH | Measure-Object  # should show 147
 ```
 
 ### 3 — Use the bundled agents, instructions & skills (already in `.github/`)
@@ -136,9 +137,31 @@ In VS Code Copilot Chat, open the agent picker and choose **excel-dev** (build/e
 | "Sort the data by Date descending" | `Sort-ExcelRange` |
 | "Create a pivot table from the data" | `New-ExcelPivotTable` |
 | "Export the current sheet to PDF" | `Export-ExcelToPdf` |
+| "Graph this workbook's dependencies and relationships" | `Export-ExcelGraph` |
 | "Profile this workbook and flag data-quality issues" *(excel-analysis)* | `Get-ExcelWorkbookInfo`, `Get-ExcelSpecialCells`, `Remove-ExcelDuplicates` |
 | "Summarize sales by region with a PivotTable" *(excel-analysis)* | `New-ExcelPivotTable`, `Invoke-ExcelFunction` |
 | "What would happen if I created a new worksheet? (dry run)" | `New-ExcelWorksheet -WhatIf` |
+
+## Dependency & data graph
+
+`Export-ExcelGraph` scans a workbook and builds an interactive graph of everything inside it and how it connects — writing `graph.json` plus a self-contained `index.html` viewer (vis.js). It captures two layers, toggled in the viewer:
+
+- **Structure** — worksheets, tables, named ranges, PivotTables, charts, connections, Power Query, Data Model tables/measures, slicers, and VBA modules, plus the references between them (formulas, chart/pivot sources, connection feeds, query loads, slicer filters, VBA code references).
+- **Data relationships** — the actual entity relationships: Data Model foreign keys, lookup-formula relationships (VLOOKUP/XLOOKUP/INDEX-MATCH), value-overlap inferred foreign keys, and primary-key detection.
+
+```powershell
+# Build graph.json + index.html
+Export-ExcelGraph -WorkbookPath C:\Sales.xlsm -OutDir .\excel-graph-out -FormulaMode Both
+
+# Query the graph without re-scanning
+Get-ExcelGraphQuery -Action summary   -GraphPath .\excel-graph-out\graph.json
+Get-ExcelGraphQuery -Action neighbors -GraphPath .\excel-graph-out\graph.json -Node table:Orders
+Get-ExcelGraphQuery -Action impact    -GraphPath .\excel-graph-out\graph.json -Node table:Customers
+```
+
+The viewer has collapsible side panels, group & edge-kind filters, a **Structure / Data** toggle, light/dark mode, and report panels (inferred-FK candidates, tables without relationships, high fan-in objects, unused named ranges, and more). A worked example lives in [`misc/`](misc/) — `excel-grapher-design.md`, the `ExcelGraph-Sample.xlsm` sample workbook, and the generated `excel-graph-out/` graph.
+
+> VBA module analysis requires *Trust access to the VBA project object model* (Excel Trust Center). Run `enable_vba_trust.ps1` (HKCU, no admin) to enable it.
 
 ## Project structure
 
@@ -152,12 +175,15 @@ MSExcel-agent/
 ├── ExcelPOSH/                   # PowerShell module (the engine)
 │   ├── ExcelPOSH.psd1           # Module manifest (PS 5.1+, Desktop + Core)
 │   ├── ExcelPOSH.psm1           # Module loader + COM constants
-│   ├── Public/                  # 24 files — one per command category
+│   ├── Public/                  # 25 files — one per command category
 │   │   ├── WorkbookOps.ps1, WorksheetOps.ps1, TableOps.ps1, FormattingOps.ps1
 │   │   ├── FilterSortOps.ps1, PivotTableOps.ps1, ChartOps.ps1, ImportOps.ps1, ...
-│   │   └── PowerQueryOps.ps1, DataConnection.ps1, DataModelOps.ps1, SlicerOps.ps1
-│   └── Private/                 # Internal helpers (COM session, utilities)
-├── Tests/                       # Pester suite — 25 test files (900+ tests)
+│   │   ├── PowerQueryOps.ps1, DataConnection.ps1, DataModelOps.ps1, SlicerOps.ps1
+│   │   └── GraphOps.ps1, GraphQueryOps.ps1   # dependency + data-relationship graph
+│   ├── Private/                 # Internal helpers (COM session, utilities, graph helpers)
+│   └── Resources/               # excel-graph-viewer.html (embedded vis.js viewer)
+├── Tests/                       # Pester suite — 26 test files (900+ tests)
+├── misc/                        # Worked graph example (design doc, sample workbook, output)
 └── README.md
 ```
 
@@ -173,7 +199,7 @@ Invoke-Pester .\Tests\ -Output Detailed
 ## Function reference
 
 <details>
-  <summary><strong>View all 144 public functions</strong></summary>
+  <summary><strong>View all 147 public functions</strong></summary>
 
 | Category | Functions |
 | --- | --- |
@@ -213,6 +239,7 @@ Invoke-Pester .\Tests\ -Output Detailed
 | **Worksheet additions** (v4.0) | `Set-ExcelSheetTab`, `Invoke-ExcelAutoFill`, `Set-ExcelFormula2`, `Get-ExcelFormulaDependencies`, `Convert-ExcelToLinkedDataType` |
 | **Data prep** (v4.0) | `Split-ExcelColumn`, `Import-ExcelRecordset`, `Add-ExcelSubtotal` |
 | **Workbook / Print additions** (v4.0) | `Set-ExcelStatusBar`, `Send-ExcelPrint` (plus `Export-ExcelToPdf -Format XPS`) |
+| **Graph** (v4.1) | `Export-ExcelGraph`, `Import-ExcelGraph`, `Get-ExcelGraphQuery` |
 
 </details>
 

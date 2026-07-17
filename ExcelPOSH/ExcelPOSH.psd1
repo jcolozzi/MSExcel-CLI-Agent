@@ -1,9 +1,9 @@
 @{
     RootModule        = 'ExcelPOSH.psm1'
-    ModuleVersion     = '4.0.0'
+    ModuleVersion     = '4.1.0'
     GUID              = 'b2c3d4e5-f6a7-8901-bcde-f23456789012'
     Author            = 'Excel-POSH'
-    Description       = 'PowerShell Excel Workbook Automation via COM — 144 functions for workbook, worksheet, table, formatting, structural, calculation, metadata, filter/sort, conditional format, data validation, view, hyperlink, clipboard, print, image/shape, pivot table, chart, import, sparkline, Power Query, data connections, Data Model/Power Pivot, slicers/timelines, styles, threaded comments, and linked data type operations'
+    Description       = 'PowerShell Excel Workbook Automation via COM — 147 functions for workbook, worksheet, table, formatting, structural, calculation, metadata, filter/sort, conditional format, data validation, view, hyperlink, clipboard, print, image/shape, pivot table, chart, import, sparkline, Power Query, data connections, Data Model/Power Pivot, slicers/timelines, styles, threaded comments, linked data type, and dependency/data-relationship graph operations'
     PowerShellVersion = '5.1'
 
     FunctionsToExport = @(
@@ -224,6 +224,11 @@
         'Get-ExcelThreadedComment'
         'Add-ExcelThreadedCommentReply'
         'Remove-ExcelThreadedComment'
+
+        # Graph — workbook dependency + data-relationship graph v4.1 (3)
+        'Export-ExcelGraph'
+        'Import-ExcelGraph'
+        'Get-ExcelGraphQuery'
     )
 
     CmdletsToExport   = @()
