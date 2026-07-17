@@ -4,9 +4,11 @@
 
 .DESCRIPTION
     Provides COM automation of Microsoft Excel workbooks (.xlsx/.xlsm/.xlsb/.xls).
-    84 public functions for workbook, worksheet, table, formatting, metadata,
+    144 public functions for workbook, worksheet, table, formatting, metadata,
     filter/sort, conditional format, data validation, view, hyperlink, clipboard,
-    print, image/shape, pivot table, chart, import, and sparkline operations.
+    print, image/shape, pivot table, chart, import, sparkline, Power Query,
+    data connections, Data Model/Power Pivot, slicers/timelines, styles,
+    threaded comments, and linked data type operations.
     No MCP server needed — AI agents call functions directly via terminal.
 
     Usage:
@@ -196,6 +198,75 @@ $script:XL_LEGEND_POSITION = @{
     left   = -4131  # xlLegendPositionLeft
     right  = -4152  # xlLegendPositionRight
     top    = -4160  # xlLegendPositionTop
+}
+
+# xlAutoFillType — Range.AutoFill type
+$script:XL_FILL_TYPE = @{
+    default     = 0   # xlFillDefault
+    copy        = 1   # xlFillCopy
+    series      = 2   # xlFillSeries
+    formats     = 3   # xlFillFormats
+    values      = 4   # xlFillValues
+    days        = 5   # xlFillDays
+    weekdays    = 6   # xlFillWeekdays
+    months      = 7   # xlFillMonths
+    years       = 8   # xlFillYears
+    lineartrend = 9   # xlLinearTrend
+    growthtrend = 10  # xlGrowthTrend
+    flashfill   = 11  # xlFlashFill
+}
+
+# xlTextParsingType — TextToColumns parse type
+$script:XL_TEXT_PARSE_TYPE = @{
+    delimited  = 1  # xlDelimited
+    fixedwidth = 2  # xlFixedWidth
+}
+
+# xlColumnDataType — TextToColumns per-column format
+$script:XL_COLUMN_DATA_TYPE = @{
+    general = 1  # xlGeneralFormat
+    text    = 2  # xlTextFormat
+    mdy     = 3  # xlMDYFormat
+    dmy     = 4  # xlDMYFormat
+    ymd     = 5  # xlYMDFormat
+    myd     = 6  # xlMYDFormat
+    dym     = 7  # xlDYMFormat
+    ydm     = 8  # xlYDMFormat
+    skip    = 9  # xlSkipColumn
+}
+
+# xlConsolidationFunction — Range.Subtotal aggregate function
+$script:XL_CONSOLIDATION_FN = @{
+    average   = -4106  # xlAverage
+    count     = -4112  # xlCount
+    countnums = -4113  # xlCountNums
+    max       = -4136  # xlMax
+    min       = -4139  # xlMin
+    product   = -4149  # xlProduct
+    stdev     = -4155  # xlStDev
+    stdevp    = -4156  # xlStDevP
+    sum       = -4157  # xlSum
+    var       = -4164  # xlVar
+    varp      = -4165  # xlVarP
+}
+
+# Linked data type service IDs (Range.ConvertToLinkedDataType)
+$script:XL_LINKED_DATA_TYPE = @{
+    stocks    = 268435456  # Stocks
+    geography = 536870912  # Geography
+}
+
+# Slicer creation type for SlicerCaches.Add2 (Type argument)
+$script:XL_SLICER_TYPE = @{
+    slicer   = 1  # xlSlicer
+    timeline = 2  # xlTimeline
+}
+
+# xlSlicerSort — slicer item sort order
+$script:XL_SLICER_SORT = @{
+    datasource = 1  # xlSlicerSortDataSourceOrder
+    ascending  = 2  # xlSlicerSortAscending
+    descending = 3  # xlSlicerSortDescending
 }
 
 # ═══════════════════════════════════════════════════════════════════════════

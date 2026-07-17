@@ -335,3 +335,63 @@ function Invoke-ExcelAdvancedFilter {
     }
     Format-ExcelOutput -Data $result -AsJson:$AsJson
 }
+
+function Add-ExcelSubtotal {
+    <#
+    .SYNOPSIS
+        Insert automatic subtotals with group breaks into a range.
+    .DESCRIPTION
+        Wraps Range.Subtotal. The range should be sorted by the GroupBy column first.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Target worksheet name.
+    .PARAMETER Range
+        Data range including headers (e.g. "A1:D100").
+    .PARAMETER GroupBy
+        1-based column index to group by (break subtotals when this column changes).
+    .PARAMETER Function
+        Aggregate: average, count, countnums, max, min, product, stdev, stdevp, sum, var, varp.
+    .PARAMETER TotalColumns
+        1-based column indices to subtotal.
+    .PARAMETER Replace
+        Replace existing subtotals (default $true).
+    .PARAMETER SummaryBelow
+        Place summary rows below data (default $true).
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Add-ExcelSubtotal -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Range "A1:D100" -GroupBy 1 -Function sum -TotalColumns 3,4 -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Range,
+        [Parameter(Mandatory)][int]$GroupBy,
+        [Parameter(Mandatory)]
+        [ValidateSet('average','count','countnums','max','min','product','stdev','stdevp','sum','var','varp')]
+        [string]$Function,
+        [Parameter(Mandatory)][int[]]$TotalColumns,
+        [bool]$Replace = $true,
+        [bool]$SummaryBelow = $true,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $rng = $ws.Range($Range)
+
+    $fn = [int]$script:XL_CONSOLIDATION_FN[$Function.ToLower()]
+    # Subtotal(GroupBy, Function, TotalList, [Replace], [PageBreaks], [SummaryBelowData])
+    $rng.Subtotal($GroupBy, $fn, $TotalColumns, $Replace, $false, $SummaryBelow)
+
+    $result = @{
+        status       = 'ok'
+        range        = $Range
+        groupBy      = $GroupBy
+        function     = $Function
+        totalColumns = $TotalColumns
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}

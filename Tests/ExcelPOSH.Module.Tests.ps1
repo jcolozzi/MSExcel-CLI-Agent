@@ -40,13 +40,13 @@ Describe 'ExcelPOSH Module' {
             Get-Module ExcelPOSH | Should -Not -BeNullOrEmpty
         }
 
-        It 'Module version is 3.0.0' {
-            (Get-Module ExcelPOSH).Version.ToString() | Should -Be '3.0.0'
+        It 'Module version is 4.0.0' {
+            (Get-Module ExcelPOSH).Version.ToString() | Should -Be '4.0.0'
         }
 
-        It 'Exports exactly 104 public functions' {
+        It 'Exports exactly 144 public functions' {
             $exported = (Get-Module ExcelPOSH).ExportedFunctions.Keys
-            $exported.Count | Should -Be 104
+            $exported.Count | Should -Be 144
         }
     }
 
@@ -129,7 +129,37 @@ Describe 'ExcelPOSH Module' {
             'Set-ExcelChartSeries', 'Set-ExcelChartAxis',
             'Set-ExcelChartLegend', 'Set-ExcelChartDataLabels',
             # PivotTableOps additions — v3.0
-            'Set-ExcelPivotField', 'Add-ExcelPivotCalculatedField'
+            'Set-ExcelPivotField', 'Add-ExcelPivotCalculatedField',
+            # PowerQueryOps (6) — v4.0
+            'Get-ExcelPowerQuery', 'New-ExcelPowerQuery', 'Set-ExcelPowerQuery',
+            'Remove-ExcelPowerQuery', 'Update-ExcelPowerQuery', 'Import-ExcelPowerQueryToTable',
+            # DataConnection (3) — v4.0
+            'Update-ExcelDataConnection', 'Remove-ExcelDataConnection', 'New-ExcelDataConnection',
+            # DataModelOps (5) — v4.0
+            'Get-ExcelDataModel', 'Add-ExcelModelMeasure', 'Remove-ExcelModelMeasure',
+            'Add-ExcelModelRelationship', 'Update-ExcelDataModel',
+            # SlicerOps (6) — v4.0
+            'New-ExcelSlicer', 'Get-ExcelSlicer', 'Set-ExcelSlicer', 'Remove-ExcelSlicer',
+            'New-ExcelTimeline', 'Set-ExcelTimelineRange',
+            # WorksheetOps additions — v4.0 (7)
+            'Set-ExcelSheetTab', 'Invoke-ExcelAutoFill', 'Set-ExcelFormula2',
+            'Get-ExcelFormulaDependencies', 'Convert-ExcelToLinkedDataType',
+            'Add-ExcelScenario', 'Get-ExcelScenario',
+            # CalculationOps additions — v4.0 (1)
+            'Invoke-ExcelGoalSeek',
+            # WorkbookOps additions — v4.0 (1)
+            'Set-ExcelStatusBar',
+            # ImportOps additions — v4.0 (2)
+            'Split-ExcelColumn', 'Import-ExcelRecordset',
+            # FilterSortOps additions — v4.0 (1)
+            'Add-ExcelSubtotal',
+            # FormattingOps additions — v4.0 (3)
+            'New-ExcelStyle', 'Set-ExcelRangeStyle', 'Get-ExcelStyle',
+            # PrintOps additions — v4.0 (1)
+            'Send-ExcelPrint',
+            # MetadataOps threaded comments — v4.0 (4)
+            'Add-ExcelThreadedComment', 'Get-ExcelThreadedComment',
+            'Add-ExcelThreadedCommentReply', 'Remove-ExcelThreadedComment'
         ) {
             $script:exported | Should -Contain $_
         }
@@ -239,6 +269,22 @@ Describe 'ExcelPOSH Module' {
 
         It 'Public/CalculationOps.ps1 exists' {
             Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\CalculationOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/PowerQueryOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\PowerQueryOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/DataConnection.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\DataConnection.ps1') | Should -BeTrue
+        }
+
+        It 'Public/DataModelOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\DataModelOps.ps1') | Should -BeTrue
+        }
+
+        It 'Public/SlicerOps.ps1 exists' {
+            Test-Path (Join-Path $PSScriptRoot '..\ExcelPOSH\Public\SlicerOps.ps1') | Should -BeTrue
         }
     }
 

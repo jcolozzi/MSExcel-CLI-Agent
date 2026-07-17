@@ -403,7 +403,147 @@ function Split-ExcelRange {
     }
     Format-ExcelOutput -Data $result -AsJson:$AsJson
 }
+function New-ExcelStyle {
+    <#
+    .SYNOPSIS
+        Create (or replace) a named workbook style.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER Name
+        Style name.
+    .PARAMETER Bold
+        Set bold.
+    .PARAMETER FontSize
+        Font size in points.
+    .PARAMETER FontName
+        Font name.
+    .PARAMETER FontColor
+        Font color (hex string or RGB integer).
+    .PARAMETER FillColor
+        Fill color (hex string or RGB integer).
+    .PARAMETER NumberFormat
+        Number format string (e.g. "#,##0.00").
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        New-ExcelStyle -WorkbookPath C:\data.xlsx -Name "Money" -NumberFormat "$#,##0.00" -Bold $true -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$Name,
+        [Nullable[bool]]$Bold,
+        [Nullable[double]]$FontSize,
+        [string]$FontName,
+        [string]$FontColor,
+        [string]$FillColor,
+        [string]$NumberFormat,
+        [switch]$AsJson
+    )
 
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $wb  = $app.ActiveWorkbook
+
+    # Replace existing style with the same name
+    try { $wb.Styles.Item($Name).Delete() } catch {}
+    $style = $wb.Styles.Add($Name)
+
+    if ($null -ne $Bold)     { $style.Font.Bold = $Bold }
+    if ($null -ne $FontSize) { $style.Font.Size = $FontSize }
+    if (-not [string]::IsNullOrWhiteSpace($FontName))  { $style.Font.Name = $FontName }
+    if (-not [string]::IsNullOrWhiteSpace($FontColor)) { $style.Font.Color = (ConvertTo-RGBColor $FontColor) }
+    if (-not [string]::IsNullOrWhiteSpace($FillColor)) {
+        $style.Interior.Pattern = $script:XL_PATTERN['solid']
+        $style.Interior.Color   = (ConvertTo-RGBColor $FillColor)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($NumberFormat)) { $style.NumberFormat = $NumberFormat }
+
+    $result = @{
+        status  = 'ok'
+        name    = $Name
+        created = $true
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Set-ExcelRangeStyle {
+    <#
+    .SYNOPSIS
+        Apply a named style to a range.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Target worksheet name.
+    .PARAMETER Range
+        Cell or range address.
+    .PARAMETER StyleName
+        Name of a built-in or custom style (e.g. "Currency", "Heading 1", "Money").
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Set-ExcelRangeStyle -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Range "B2:B100" -StyleName "Currency" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Range,
+        [Parameter(Mandatory)][string]$StyleName,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $rng = $ws.Range($Range)
+
+    $rng.Style = $StyleName
+
+    $result = @{
+        status = 'ok'
+        range  = $rng.Address($false, $false)
+        style  = $StyleName
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Get-ExcelStyle {
+    <#
+    .SYNOPSIS
+        List workbook styles, or get one by name.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER Name
+        Optional: return only the style with this name.
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Get-ExcelStyle -WorkbookPath C:\data.xlsx -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [string]$Name,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $wb  = $app.ActiveWorkbook
+
+    $styles = @()
+    foreach ($s in $wb.Styles) {
+        if (-not [string]::IsNullOrWhiteSpace($Name) -and $s.Name -ne $Name) { continue }
+        $entry = @{ name = $s.Name; builtIn = [bool]$s.BuiltIn }
+        try { $entry['numberFormat'] = $s.NumberFormat } catch { $entry['numberFormat'] = $null }
+        $styles += $entry
+    }
+
+    $result = @{
+        status = 'ok'
+        count  = $styles.Count
+        styles = $styles
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
 # ═══════════════════════════════════════════════════════════════════════════
 # PRIVATE HELPER: Color conversion
 # ═══════════════════════════════════════════════════════════════════════════

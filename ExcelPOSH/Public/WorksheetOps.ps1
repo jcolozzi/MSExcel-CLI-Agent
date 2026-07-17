@@ -700,3 +700,338 @@ function Get-ExcelSpecialCells {
     }
     Format-ExcelOutput -Data $result -AsJson:$AsJson
 }
+
+function Set-ExcelSheetTab {
+    <#
+    .SYNOPSIS
+        Set a worksheet tab color.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Target worksheet name.
+    .PARAMETER Color
+        Tab color as hex string (e.g. "#FF0000") or RGB integer. Empty string clears the color.
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Set-ExcelSheetTab -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Color "#4472C4" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Color,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+
+    if ([string]::IsNullOrWhiteSpace($Color)) {
+        $ws.Tab.ColorIndex = -4142   # xlColorIndexNone
+    } else {
+        $ws.Tab.Color = (ConvertTo-RGBColor $Color)
+    }
+
+    $result = @{
+        status   = 'ok'
+        sheet    = $SheetName
+        tabColor = $Color
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Invoke-ExcelAutoFill {
+    <#
+    .SYNOPSIS
+        Fill a destination range from a source range (series, formats, copy, dates, etc.).
+    .DESCRIPTION
+        Wraps Range.AutoFill. The destination range MUST include the source range
+        (e.g. source A1:A2, destination A1:A100).
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Target worksheet name.
+    .PARAMETER SourceRange
+        Range that seeds the fill (e.g. "A1:A2").
+    .PARAMETER DestinationRange
+        Range to fill, including the source (e.g. "A1:A100").
+    .PARAMETER FillType
+        Fill behavior: default, copy, series, formats, values, days, weekdays, months, years, lineartrend, growthtrend, flashfill.
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Invoke-ExcelAutoFill -WorkbookPath C:\data.xlsx -SheetName Sheet1 -SourceRange "A1:A2" -DestinationRange "A1:A100" -FillType series -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$SourceRange,
+        [Parameter(Mandatory)][string]$DestinationRange,
+        [ValidateSet('default','copy','series','formats','values','days','weekdays','months','years','lineartrend','growthtrend','flashfill')]
+        [string]$FillType = 'default',
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $src = $ws.Range($SourceRange)
+    $dst = $ws.Range($DestinationRange)
+
+    $src.AutoFill($dst, [int]$script:XL_FILL_TYPE[$FillType.ToLower()])
+
+    $result = @{
+        status      = 'ok'
+        source      = $SourceRange
+        destination = $DestinationRange
+        fillType    = $FillType
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Set-ExcelFormula2 {
+    <#
+    .SYNOPSIS
+        Write a dynamic-array formula to a range using the Formula2 property.
+    .DESCRIPTION
+        Formula2 enables modern spill behavior for functions like FILTER, SORT, UNIQUE,
+        SEQUENCE, and XLOOKUP. Use this instead of Formula for dynamic arrays.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Target worksheet name.
+    .PARAMETER Range
+        Anchor cell for the spill (e.g. "D1").
+    .PARAMETER Formula
+        The formula, including leading '=' (e.g. "=SORT(A1:A100)").
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Set-ExcelFormula2 -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Range "D1" -Formula "=UNIQUE(A1:A100)" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Range,
+        [Parameter(Mandatory)][string]$Formula,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $rng = $ws.Range($Range)
+
+    $rng.Formula2 = $Formula
+
+    $result = @{
+        status  = 'ok'
+        range   = $rng.Address($false, $false)
+        formula = $Formula
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Get-ExcelFormulaDependencies {
+    <#
+    .SYNOPSIS
+        Trace precedents or dependents of a formula cell.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Target worksheet name.
+    .PARAMETER Range
+        Single cell to inspect (e.g. "C5").
+    .PARAMETER Relation
+        Precedents (cells this formula reads) or Dependents (formulas that read this cell).
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Get-ExcelFormulaDependencies -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Range "C5" -Relation Precedents -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Range,
+        [ValidateSet('Precedents','Dependents')]
+        [string]$Relation = 'Precedents',
+        [switch]$AsJson
+    )
+
+    $app  = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws   = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $cell = $ws.Range($Range)
+
+    $addresses = @()
+    try {
+        $rel = if ($Relation -eq 'Precedents') { $cell.Precedents } else { $cell.Dependents }
+        $addresses = @($rel.Address($false, $false) -split ',')
+    } catch {
+        # No precedents/dependents — not an error
+        $addresses = @()
+    }
+
+    $result = @{
+        status     = 'ok'
+        cell       = $cell.Address($false, $false)
+        relation   = $Relation
+        hasFormula = [bool]$cell.HasFormula
+        formula    = (ConvertTo-ExcelSafeValue $cell.Formula)
+        addresses  = $addresses
+        count      = $addresses.Count
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Convert-ExcelToLinkedDataType {
+    <#
+    .SYNOPSIS
+        Convert cells to a Linked Data Type (Stocks or Geography).
+    .DESCRIPTION
+        Wraps Range.ConvertToLinkedDataType. Requires an online connection and a supported
+        locale. Has no effect on blank cells or cells containing formulas; returns
+        status='unsupported' if the service/locale is unavailable.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Target worksheet name.
+    .PARAMETER Range
+        Range of cells to convert (e.g. "A2:A20").
+    .PARAMETER DataType
+        Stocks or Geography.
+    .PARAMETER Culture
+        LCID culture string (default "en-US").
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Convert-ExcelToLinkedDataType -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Range "A2:A20" -DataType Stocks -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Range,
+        [Parameter(Mandatory)][ValidateSet('Stocks','Geography')][string]$DataType,
+        [string]$Culture = 'en-US',
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $rng = $ws.Range($Range)
+
+    try {
+        $rng.ConvertToLinkedDataType([int]$script:XL_LINKED_DATA_TYPE[$DataType.ToLower()], $Culture)
+        $result = @{
+            status   = 'ok'
+            range    = $Range
+            dataType = $DataType
+            culture  = $Culture
+        }
+    } catch {
+        $result = @{
+            status = 'unsupported'
+            range  = $Range
+            error  = "ConvertToLinkedDataType failed (needs online service / supported locale): $($_.Exception.Message)"
+        }
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Add-ExcelScenario {
+    <#
+    .SYNOPSIS
+        Add a what-if Scenario to a worksheet.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Target worksheet name.
+    .PARAMETER Name
+        Scenario name.
+    .PARAMETER ChangingCells
+        Range of cells the scenario changes (e.g. "B1:B3").
+    .PARAMETER Values
+        Array of values matching the changing cells.
+    .PARAMETER Comment
+        Optional scenario comment.
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Add-ExcelScenario -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Name "Best" -ChangingCells "B1:B2" -Values @(100,200) -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$ChangingCells,
+        [Parameter(Mandatory)][object[]]$Values,
+        [string]$Comment,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+
+    try {
+        if ([string]::IsNullOrWhiteSpace($Comment)) {
+            $null = $ws.Scenarios().Add($Name, $ws.Range($ChangingCells), $Values)
+        } else {
+            $null = $ws.Scenarios().Add($Name, $ws.Range($ChangingCells), $Values, $Comment)
+        }
+        $result = @{
+            status        = 'ok'
+            scenario      = $Name
+            changingCells = $ChangingCells
+        }
+    } catch {
+        $result = @{
+            status = 'error'
+            error  = "Failed to add scenario: $($_.Exception.Message)"
+        }
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Get-ExcelScenario {
+    <#
+    .SYNOPSIS
+        List what-if Scenarios on a worksheet.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Target worksheet name.
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Get-ExcelScenario -WorkbookPath C:\data.xlsx -SheetName Sheet1 -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+
+    $scenarios = @()
+    foreach ($s in $ws.Scenarios()) {
+        $scenarios += @{
+            name          = $s.Name
+            changingCells = $s.ChangingCells.Address($false, $false)
+            comment       = (ConvertTo-ExcelSafeValue $s.Comment)
+        }
+    }
+
+    $result = @{
+        status    = 'ok'
+        sheet     = $SheetName
+        count     = $scenarios.Count
+        scenarios = $scenarios
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}

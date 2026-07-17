@@ -5,7 +5,7 @@
 ![Platform: Windows](https://img.shields.io/badge/platform-Windows-blue?logo=windows)
 ![PowerShell: 5.1+](https://img.shields.io/badge/PowerShell-5.1%2B-blue?logo=powershell)
 ![VS Code](https://img.shields.io/badge/VS%20Code-GitHub%20Copilot%20Chat-blueviolet?logo=visual-studio-code)
-![Functions: 84](https://img.shields.io/badge/functions-84-brightgreen)
+![Functions: 144](https://img.shields.io/badge/functions-144-brightgreen)
 ![Module Version](https://img.shields.io/badge/version-1.0.0-orange)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
@@ -18,7 +18,7 @@ You:   "Create a table in Sheet1 with columns ID, Name, Email and add 100 rows o
 Agent: → New-ExcelTable → confirms success
 ```
 
-The **ExcelPOSH** module (included) is a comprehensive PowerShell interface to the Excel Object Model, providing **84 public functions** covering workbooks, worksheets, tables, formatting, filtering, pivot tables, charts, and data manipulation.
+The **ExcelPOSH** module (included) is a comprehensive PowerShell interface to the Excel Object Model, providing **144 public functions** covering workbooks, worksheets, tables, formatting, filtering, pivot tables, charts, Power Query, the Data Model, slicers, and data manipulation.
 
 ## How it works
 
@@ -172,7 +172,7 @@ Invoke-Pester .\Tests\ -Output Detailed
 ## Function reference
 
 <details>
-  <summary><strong>View all 84 public functions</strong></summary>
+  <summary><strong>View all 144 public functions</strong></summary>
 
 | Category | Functions |
 | --- | --- |
@@ -199,6 +199,19 @@ Invoke-Pester .\Tests\ -Output Detailed
 | **Protection** | `Get-ExcelProtection`, `Set-ExcelProtection` |
 | **Comments** | `Get-ExcelComment`, `Set-ExcelComment` |
 | **Tips** | `Get-ExcelTip` |
+| **Structural** (v3.0) | `Add-ExcelRow`, `Remove-ExcelRow`, `Add-ExcelColumn`, `Remove-ExcelColumn` |
+| **Calculation** (v3.0) | `Set-ExcelPerformanceMode`, `Invoke-ExcelCalculate`, `Invoke-ExcelFunction`, `Invoke-ExcelEvaluate` |
+| **Other v3.0** | `Remove-ExcelDuplicates`, `Invoke-ExcelAdvancedFilter`, `Merge-ExcelRange`, `Split-ExcelRange`, `Get-ExcelSpecialCells`, `Invoke-ExcelMacro`, `Set-ExcelChartSeries`, `Set-ExcelChartAxis`, `Set-ExcelChartLegend`, `Set-ExcelChartDataLabels`, `Set-ExcelPivotField`, `Add-ExcelPivotCalculatedField` |
+| **Power Query** (v4.0) | `Get-ExcelPowerQuery`, `New-ExcelPowerQuery`, `Set-ExcelPowerQuery`, `Remove-ExcelPowerQuery`, `Update-ExcelPowerQuery`, `Import-ExcelPowerQueryToTable` |
+| **Data Connections** (v4.0) | `Update-ExcelDataConnection`, `New-ExcelDataConnection`, `Remove-ExcelDataConnection` |
+| **Data Model / Power Pivot** (v4.0) | `Get-ExcelDataModel`, `Add-ExcelModelMeasure`, `Remove-ExcelModelMeasure`, `Add-ExcelModelRelationship`, `Update-ExcelDataModel` |
+| **Slicers & Timelines** (v4.0) | `New-ExcelSlicer`, `Get-ExcelSlicer`, `Set-ExcelSlicer`, `Remove-ExcelSlicer`, `New-ExcelTimeline`, `Set-ExcelTimelineRange` |
+| **Styles** (v4.0) | `New-ExcelStyle`, `Set-ExcelRangeStyle`, `Get-ExcelStyle` |
+| **Threaded Comments** (v4.0) | `Add-ExcelThreadedComment`, `Get-ExcelThreadedComment`, `Add-ExcelThreadedCommentReply`, `Remove-ExcelThreadedComment` |
+| **What-If** (v4.0) | `Invoke-ExcelGoalSeek`, `Add-ExcelScenario`, `Get-ExcelScenario` |
+| **Worksheet additions** (v4.0) | `Set-ExcelSheetTab`, `Invoke-ExcelAutoFill`, `Set-ExcelFormula2`, `Get-ExcelFormulaDependencies`, `Convert-ExcelToLinkedDataType` |
+| **Data prep** (v4.0) | `Split-ExcelColumn`, `Import-ExcelRecordset`, `Add-ExcelSubtotal` |
+| **Workbook / Print additions** (v4.0) | `Set-ExcelStatusBar`, `Send-ExcelPrint` (plus `Export-ExcelToPdf -Format XPS`) |
 
 </details>
 

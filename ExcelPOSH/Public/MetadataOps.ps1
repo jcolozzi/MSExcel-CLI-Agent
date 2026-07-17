@@ -438,3 +438,208 @@ function Get-ExcelTip {
     }
     Format-ExcelOutput -Data $result -AsJson:$AsJson
 }
+
+function Add-ExcelThreadedComment {
+    <#
+    .SYNOPSIS
+        Add a modern threaded comment to a cell (Excel 365).
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Worksheet name.
+    .PARAMETER Range
+        Cell address for the comment.
+    .PARAMETER Text
+        Comment text.
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Add-ExcelThreadedComment -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Range "A1" -Text "Please verify" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Range,
+        [Parameter(Mandatory)][string]$Text,
+        [switch]$AsJson
+    )
+
+    $app  = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws   = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $cell = $ws.Range($Range)
+
+    try {
+        $null = $cell.AddCommentThreaded($Text)
+        $result = @{
+            status  = 'ok'
+            address = $cell.Address($false, $false)
+            text    = $Text
+        }
+    } catch {
+        $result = @{
+            status = 'unsupported'
+            error  = "Threaded comments unavailable (requires Excel 365): $($_.Exception.Message)"
+        }
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Get-ExcelThreadedComment {
+    <#
+    .SYNOPSIS
+        Read threaded comments (and their replies) from a worksheet.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Worksheet name.
+    .PARAMETER Range
+        Optional: a specific cell. If omitted, returns all threaded comments on the sheet.
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Get-ExcelThreadedComment -WorkbookPath C:\data.xlsx -SheetName Sheet1 -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [string]$Range,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+
+    $comments = @()
+    try {
+        $source = if (-not [string]::IsNullOrWhiteSpace($Range)) {
+            $ct = $ws.Range($Range).CommentThreaded
+            if ($null -ne $ct) { @($ct) } else { @() }
+        } else {
+            $ws.CommentsThreaded
+        }
+
+        foreach ($ct in $source) {
+            if ($null -eq $ct) { continue }
+            $replies = @()
+            foreach ($r in $ct.Replies) {
+                $replies += @{ author = $r.Author.Name; text = $r.Text() }
+            }
+            $comments += @{
+                address    = $ct.Parent.Address($false, $false)
+                author     = $ct.Author.Name
+                text       = $ct.Text()
+                replyCount = $ct.Replies.Count
+                replies    = $replies
+            }
+        }
+        $result = @{
+            status   = 'ok'
+            sheet    = $SheetName
+            count    = $comments.Count
+            comments = $comments
+        }
+    } catch {
+        $result = @{
+            status = 'unsupported'
+            error  = "Threaded comments unavailable (requires Excel 365): $($_.Exception.Message)"
+        }
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Add-ExcelThreadedCommentReply {
+    <#
+    .SYNOPSIS
+        Add a reply to an existing threaded comment.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Worksheet name.
+    .PARAMETER Range
+        Cell containing the threaded comment.
+    .PARAMETER Text
+        Reply text.
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Add-ExcelThreadedCommentReply -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Range "A1" -Text "Verified" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Range,
+        [Parameter(Mandatory)][string]$Text,
+        [switch]$AsJson
+    )
+
+    $app  = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws   = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $cell = $ws.Range($Range)
+
+    try {
+        $ct = $cell.CommentThreaded
+        if ($null -eq $ct) {
+            $result = @{ status = 'error'; error = "No threaded comment at $Range" }
+        } else {
+            $null = $ct.AddReply($Text)
+            $result = @{
+                status  = 'ok'
+                address = $cell.Address($false, $false)
+                reply   = $Text
+            }
+        }
+    } catch {
+        $result = @{
+            status = 'unsupported'
+            error  = "Threaded comments unavailable (requires Excel 365): $($_.Exception.Message)"
+        }
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Remove-ExcelThreadedComment {
+    <#
+    .SYNOPSIS
+        Delete a threaded comment (and its replies) from a cell.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Worksheet name.
+    .PARAMETER Range
+        Cell containing the threaded comment.
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Remove-ExcelThreadedComment -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Range "A1" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$Range,
+        [switch]$AsJson
+    )
+
+    $app  = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws   = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $cell = $ws.Range($Range)
+
+    try {
+        $ct = $cell.CommentThreaded
+        if ($null -ne $ct) { $ct.Delete() }
+        $result = @{
+            status  = 'ok'
+            address = $cell.Address($false, $false)
+            deleted = ($null -ne $ct)
+        }
+    } catch {
+        $result = @{
+            status = 'unsupported'
+            error  = "Threaded comments unavailable (requires Excel 365): $($_.Exception.Message)"
+        }
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}

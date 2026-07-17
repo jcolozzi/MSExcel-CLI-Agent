@@ -2,3 +2,7 @@
 ExcelPOSH-GapAnalysis.md
 ExcelPOSH-ImplementationPlan.md
 todo.md
+
+# Smoke test files
+_smoke_probe.ps1
+_smoke_probe2.ps1

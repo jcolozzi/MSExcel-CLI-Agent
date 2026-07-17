@@ -383,3 +383,49 @@ function Invoke-ExcelMacro {
     }
     Format-ExcelOutput -Data $output -AsJson:$AsJson
 }
+
+function Set-ExcelStatusBar {
+    <#
+    .SYNOPSIS
+        Set or reset the Excel status bar text.
+    .DESCRIPTION
+        Useful for showing progress during long agent operations. Use -Reset to hand the
+        status bar back to Excel.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER Text
+        Status bar message.
+    .PARAMETER Reset
+        Restore the default status bar (sets StatusBar = $false).
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Set-ExcelStatusBar -WorkbookPath C:\data.xlsx -Text "Processing row 500 of 10000..." -AsJson
+    .EXAMPLE
+        Set-ExcelStatusBar -WorkbookPath C:\data.xlsx -Reset -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [string]$Text,
+        [switch]$Reset,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+
+    if ($Reset) {
+        $app.StatusBar = $false
+        $state = 'reset'
+    } else {
+        $app.StatusBar = $Text
+        $state = 'set'
+    }
+
+    $result = @{
+        status    = 'ok'
+        statusBar = $state
+        text      = if ($Reset) { $null } else { $Text }
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
