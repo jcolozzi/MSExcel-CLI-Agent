@@ -44,6 +44,13 @@ Always create a PRD when:
 3. **Generate PRD:** Use the PRD Structure (see below) based on user answers
 4. **Save:** Store as `prd-[feature-name].md` in the `/tasks` directory
 
+> **Ground the PRD in the existing workbook.** When the feature changes an existing workbook, map its
+> current wiring first: run `Export-ExcelGraph -WorkbookPath $wb` once, then use
+> `Get-ExcelGraphQuery -Action impact|neighbors -WorkbookPath $wb -Node "table:Foo" -AsJson` to see
+> what a proposed change would affect. `Get-ExcelGraphQuery -WorkbookPath $wb` auto-locates the graph
+> beside the workbook (`excel-graph-out\graph.json`); open `excel-graph-out\index.html` to review
+> dependencies visually. Cite the affected sheets/tables/formulas in the PRD's scope and risks.
+
 ### PRD Structure
 
 The generated PRD must include these sections:

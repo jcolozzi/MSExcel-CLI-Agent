@@ -89,6 +89,33 @@ The final output should be understandable to a business user or stakeholder.
 - Call out assumptions, blanks, and data caveats
 - Offer to place the results into a separate report sheet or export a chart
 
+## Map dependencies & relationships (graph)
+
+When a question is about **structure or relationships** rather than values — "what depends on this
+table?", "which named ranges are unused?", "how are these sheets connected?", "what are the foreign
+keys?" — build a dependency graph and query it instead of reading formulas by hand.
+
+```powershell
+# Build once: writes graph.json + an interactive index.html to <workbook-folder>\excel-graph-out\
+Export-ExcelGraph -WorkbookPath $wb -FormulaMode Both
+
+# Query repeatedly — these auto-locate the graph.json next to the workbook (no re-scan, no Excel):
+Get-ExcelGraphQuery -Action summary   -WorkbookPath $wb -AsJson   # counts by node group + edge kind
+Get-ExcelGraphQuery -Action neighbors -WorkbookPath $wb -Node "table:Orders" -Depth 2 -AsJson
+Get-ExcelGraphQuery -Action impact    -WorkbookPath $wb -Node "table:Customers" -AsJson
+Get-ExcelGraphQuery -Action orphans   -WorkbookPath $wb -AsJson   # nothing points to these
+```
+
+- **Check for an existing graph first:** `Get-ExcelGraphQuery -WorkbookPath $wb` auto-finds
+  `<workbook-folder>\excel-graph-out\graph.json`. If it reports the graph is missing, run
+  `Export-ExcelGraph` once, then query. Re-export only after the workbook's structure changes.
+- **Two layers:** *structure* (sheets, tables, names, pivots, charts, connections, Power Query,
+  Data Model, slicers, VBA) and *data relationships* (Data Model FKs, lookup-formula FKs,
+  value-overlap inferred FKs, primary keys). The `index.html` viewer toggles between them and
+  includes report panels (inferred-FK candidates, tables without relationships, high fan-in,
+  unused named ranges).
+- VBA code edges need *Trust access to the VBA project object model* (`enable_vba_trust.ps1`).
+
 ## Best Practices
 
 - **Use structured tables where possible.** Tables make ranges easier to inspect and summarize.
@@ -115,6 +142,7 @@ The final output should be understandable to a business user or stakeholder.
 | **Formulas & evaluation** | `Invoke-ExcelEvaluate`, `Invoke-ExcelFunction`, `Invoke-ExcelCalculate`, `Set-ExcelPerformanceMode` |
 | **Reporting outputs** | `New-ExcelPivotTable`, `Update-ExcelPivotTable`, `New-ExcelChart`, `Set-ExcelChart`, `Export-ExcelChart` |
 | **Workbook management** | `Save-ExcelWorkbook`, `Copy-ExcelWorkbook`, `Close-ExcelWorkbook` |
+| **Dependency & data graph** | `Export-ExcelGraph`, `Get-ExcelGraphQuery`, `Import-ExcelGraph` |
 
 ## Example Outcome
 
