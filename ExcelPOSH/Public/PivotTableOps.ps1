@@ -57,9 +57,12 @@ function New-ExcelPivotTable {
     $destWs = try {
         $wb.Worksheets.Item($DestinationSheet)
     } catch {
-        $wb.Worksheets.Add()
-        $wb.ActiveSheet.Name = $DestinationSheet
-        $wb.ActiveSheet
+        # Capture the new sheet so the catch block returns exactly ONE worksheet.
+        # (An uncaptured Worksheets.Add() would emit a second object, making $destWs
+        # a 2-element array and causing CreatePivotTable to throw a type mismatch.)
+        $newWs = $wb.Worksheets.Add()
+        $newWs.Name = $DestinationSheet
+        $newWs
     }
 
     $destCell = $destWs.Range($DestinationCell)

@@ -236,6 +236,7 @@ function Export-ExcelToPdf {
         [Parameter(Mandatory)][string]$WorkbookPath,
         [Parameter(Mandatory)][string]$OutputPath,
         [string]$SheetName,
+        [ValidateSet('PDF','XPS')][string]$Format = 'PDF',
         [ValidateSet('standard','minimum')][string]$Quality = 'standard',
         [switch]$AsJson
     )
@@ -245,18 +246,73 @@ function Export-ExcelToPdf {
 
     $qualityMap = @{ 'standard' = 0; 'minimum' = 1 }
     $qualityConst = $qualityMap[$Quality]
+    $formatConst  = [int]$script:XL_FIXED_FORMAT[$Format.ToLower()]
 
     if ($SheetName) {
         $ws = $wb.Worksheets.Item($SheetName)
-        $ws.ExportAsFixedFormat(0, $OutputPath, $qualityConst)
+        $ws.ExportAsFixedFormat($formatConst, $OutputPath, $qualityConst)
     } else {
-        $wb.ExportAsFixedFormat(0, $OutputPath, $qualityConst)
+        $wb.ExportAsFixedFormat($formatConst, $OutputPath, $qualityConst)
     }
 
     $result = @{
         status = 'exported'
         path   = $OutputPath
-        format = 'pdf'
+        format = $Format.ToLower()
+    }
+    Format-ExcelOutput -Data $result -AsJson:$AsJson
+}
+
+function Send-ExcelPrint {
+    <#
+    .SYNOPSIS
+        Send a worksheet directly to a printer.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Worksheet to print.
+    .PARAMETER Copies
+        Number of copies (default 1).
+    .PARAMETER FromPage
+        First page to print (optional).
+    .PARAMETER ToPage
+        Last page to print (optional).
+    .PARAMETER Preview
+        Show print preview instead of printing.
+    .PARAMETER Printer
+        Optional active printer name (e.g. "HP LaserJet on Ne01:").
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Send-ExcelPrint -WorkbookPath C:\data.xlsx -SheetName Sheet1 -Copies 2 -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [int]$Copies = 1,
+        [int]$FromPage,
+        [int]$ToPage,
+        [switch]$Preview,
+        [string]$Printer,
+        [switch]$AsJson
+    )
+
+    $app = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws  = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+
+    $from       = if ($PSBoundParameters.ContainsKey('FromPage')) { $FromPage } else { [System.Reflection.Missing]::Value }
+    $to         = if ($PSBoundParameters.ContainsKey('ToPage'))   { $ToPage }   else { [System.Reflection.Missing]::Value }
+    $printerVal = if ([string]::IsNullOrWhiteSpace($Printer))      { [System.Reflection.Missing]::Value } else { $Printer }
+
+    # PrintOut(From, To, Copies, Preview, ActivePrinter)
+    $ws.PrintOut($from, $to, $Copies, $Preview.IsPresent, $printerVal)
+
+    $result = @{
+        status  = 'ok'
+        sheet   = $SheetName
+        copies  = $Copies
+        preview = $Preview.IsPresent
     }
     Format-ExcelOutput -Data $result -AsJson:$AsJson
 }

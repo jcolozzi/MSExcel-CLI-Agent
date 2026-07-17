@@ -1,9 +1,9 @@
 @{
     RootModule        = 'ExcelPOSH.psm1'
-    ModuleVersion     = '3.0.0'
+    ModuleVersion     = '4.0.0'
     GUID              = 'b2c3d4e5-f6a7-8901-bcde-f23456789012'
     Author            = 'Excel-POSH'
-    Description       = 'PowerShell Excel Workbook Automation via COM — 104 functions for workbook, worksheet, table, formatting, structural, calculation, metadata, filter/sort, conditional format, data validation, view, hyperlink, clipboard, print, image/shape, pivot table, chart, import, and sparkline operations'
+    Description       = 'PowerShell Excel Workbook Automation via COM — 144 functions for workbook, worksheet, table, formatting, structural, calculation, metadata, filter/sort, conditional format, data validation, view, hyperlink, clipboard, print, image/shape, pivot table, chart, import, sparkline, Power Query, data connections, Data Model/Power Pivot, slicers/timelines, styles, threaded comments, and linked data type operations'
     PowerShellVersion = '5.1'
 
     FunctionsToExport = @(
@@ -160,6 +160,70 @@
         # Pivot Table — additions v3.0
         'Set-ExcelPivotField'
         'Add-ExcelPivotCalculatedField'
+
+        # Power Query (6) — NEW v4.0
+        'Get-ExcelPowerQuery'
+        'New-ExcelPowerQuery'
+        'Set-ExcelPowerQuery'
+        'Remove-ExcelPowerQuery'
+        'Update-ExcelPowerQuery'
+        'Import-ExcelPowerQueryToTable'
+
+        # Data Connections (3) — NEW v4.0
+        'Update-ExcelDataConnection'
+        'Remove-ExcelDataConnection'
+        'New-ExcelDataConnection'
+
+        # Data Model / Power Pivot (5) — NEW v4.0
+        'Get-ExcelDataModel'
+        'Add-ExcelModelMeasure'
+        'Remove-ExcelModelMeasure'
+        'Add-ExcelModelRelationship'
+        'Update-ExcelDataModel'
+
+        # Slicers & Timelines (6) — NEW v4.0
+        'New-ExcelSlicer'
+        'Get-ExcelSlicer'
+        'Set-ExcelSlicer'
+        'Remove-ExcelSlicer'
+        'New-ExcelTimeline'
+        'Set-ExcelTimelineRange'
+
+        # Worksheet — additions v4.0 (7)
+        'Set-ExcelSheetTab'
+        'Invoke-ExcelAutoFill'
+        'Set-ExcelFormula2'
+        'Get-ExcelFormulaDependencies'
+        'Convert-ExcelToLinkedDataType'
+        'Add-ExcelScenario'
+        'Get-ExcelScenario'
+
+        # Calculation — additions v4.0 (1)
+        'Invoke-ExcelGoalSeek'
+
+        # Workbook — additions v4.0 (1)
+        'Set-ExcelStatusBar'
+
+        # Import — additions v4.0 (2)
+        'Split-ExcelColumn'
+        'Import-ExcelRecordset'
+
+        # Filter & Sort — additions v4.0 (1)
+        'Add-ExcelSubtotal'
+
+        # Formatting — additions v4.0 (3)
+        'New-ExcelStyle'
+        'Set-ExcelRangeStyle'
+        'Get-ExcelStyle'
+
+        # Print — additions v4.0 (1)
+        'Send-ExcelPrint'
+
+        # Metadata — threaded comments v4.0 (4)
+        'Add-ExcelThreadedComment'
+        'Get-ExcelThreadedComment'
+        'Add-ExcelThreadedCommentReply'
+        'Remove-ExcelThreadedComment'
     )
 
     CmdletsToExport   = @()

@@ -234,3 +234,53 @@ function Invoke-ExcelEvaluate {
     }
     Format-ExcelOutput -Data $output -AsJson:$AsJson
 }
+
+function Invoke-ExcelGoalSeek {
+    <#
+    .SYNOPSIS
+        Solve for an input value that makes a formula cell reach a target (Goal Seek).
+    .DESCRIPTION
+        Wraps Range.GoalSeek. The TargetCell must contain a formula that depends on
+        ChangingCell. Excel adjusts ChangingCell until TargetCell equals TargetValue.
+    .PARAMETER WorkbookPath
+        Path to the Excel workbook.
+    .PARAMETER SheetName
+        Target worksheet name.
+    .PARAMETER TargetCell
+        The formula cell whose value you want to reach (e.g. "C10").
+    .PARAMETER TargetValue
+        The value TargetCell should reach.
+    .PARAMETER ChangingCell
+        The input cell Excel may adjust (e.g. "B2").
+    .PARAMETER AsJson
+        Return JSON string instead of PSCustomObject.
+    .EXAMPLE
+        Invoke-ExcelGoalSeek -WorkbookPath C:\data.xlsx -SheetName Sheet1 -TargetCell "C10" -TargetValue 1000 -ChangingCell "B2" -AsJson
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$WorkbookPath,
+        [Parameter(Mandatory)][string]$SheetName,
+        [Parameter(Mandatory)][string]$TargetCell,
+        [Parameter(Mandatory)][double]$TargetValue,
+        [Parameter(Mandatory)][string]$ChangingCell,
+        [switch]$AsJson
+    )
+
+    $app      = Connect-ExcelWorkbook -WorkbookPath $WorkbookPath
+    $ws       = $app.ActiveWorkbook.Worksheets.Item($SheetName)
+    $target   = $ws.Range($TargetCell)
+    $changing = $ws.Range($ChangingCell)
+
+    $converged = $target.GoalSeek($TargetValue, $changing)
+
+    $output = @{
+        status       = 'ok'
+        targetCell   = $TargetCell
+        targetValue  = $TargetValue
+        changingCell = $ChangingCell
+        solvedValue  = (ConvertTo-ExcelSafeValue $changing.Value2)
+        converged    = [bool]$converged
+    }
+    Format-ExcelOutput -Data $output -AsJson:$AsJson
+}

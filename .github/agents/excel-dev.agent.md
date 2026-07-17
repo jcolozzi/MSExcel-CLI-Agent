@@ -201,7 +201,7 @@ Remove-ExcelSparkline -WorkbookPath $wb -SheetName "Sheet1" -CellAddress "E1:E5"
 ```
 
 
-## Available Functions (104 public)
+## Available Functions (144 public)
 
 | Category | Functions |
 |----------|-----------|
@@ -229,7 +229,17 @@ Remove-ExcelSparkline -WorkbookPath $wb -SheetName "Sheet1" -CellAddress "E1:E5"
 | **Comments** | `Get-ExcelComment`, `Set-ExcelComment` |
 | **Tips** | `Get-ExcelTip` |
 | **Structural** | `Add-ExcelRow`, `Remove-ExcelRow`, `Add-ExcelColumn`, `Remove-ExcelColumn` |
-| **Calculation** | `Set-ExcelPerformanceMode`, `Invoke-ExcelCalculate`, `Invoke-ExcelFunction`, `Invoke-ExcelEvaluate` |
+| **Calculation** | `Set-ExcelPerformanceMode`, `Invoke-ExcelCalculate`, `Invoke-ExcelFunction`, `Invoke-ExcelEvaluate`, `Invoke-ExcelGoalSeek` |
+| **Power Query** | `Get-ExcelPowerQuery`, `New-ExcelPowerQuery`, `Set-ExcelPowerQuery`, `Remove-ExcelPowerQuery`, `Update-ExcelPowerQuery`, `Import-ExcelPowerQueryToTable` |
+| **Data Connections** | `Get-ExcelConnection`, `Update-ExcelDataConnection`, `New-ExcelDataConnection`, `Remove-ExcelDataConnection` |
+| **Data Model / Power Pivot** | `Get-ExcelDataModel`, `Add-ExcelModelMeasure`, `Remove-ExcelModelMeasure`, `Add-ExcelModelRelationship`, `Update-ExcelDataModel` |
+| **Slicers & Timelines** | `New-ExcelSlicer`, `Get-ExcelSlicer`, `Set-ExcelSlicer`, `Remove-ExcelSlicer`, `New-ExcelTimeline`, `Set-ExcelTimelineRange` |
+| **Styles** | `New-ExcelStyle`, `Set-ExcelRangeStyle`, `Get-ExcelStyle` |
+| **Threaded Comments** | `Add-ExcelThreadedComment`, `Get-ExcelThreadedComment`, `Add-ExcelThreadedCommentReply`, `Remove-ExcelThreadedComment` |
+| **What-If** | `Invoke-ExcelGoalSeek`, `Add-ExcelScenario`, `Get-ExcelScenario` |
+| **Worksheet (v4.0)** | `Set-ExcelSheetTab`, `Invoke-ExcelAutoFill`, `Set-ExcelFormula2`, `Get-ExcelFormulaDependencies`, `Convert-ExcelToLinkedDataType` |
+| **Data prep (v4.0)** | `Split-ExcelColumn`, `Import-ExcelRecordset`, `Add-ExcelSubtotal` |
+| **Workbook / Print (v4.0)** | `Set-ExcelStatusBar`, `Send-ExcelPrint` (and `Export-ExcelToPdf -Format XPS`) |
 
 ### New v3.0.0 Usage Examples
 
@@ -274,6 +284,38 @@ Invoke-ExcelMacro -WorkbookPath $wb -MacroName "MyMacro" -AsJson
 Set-ExcelChartSeries -WorkbookPath $wb -SheetName "Sheet1" -ChartName "Chart 1" -SeriesIndex 1 -ValuesRange "B2:B10" -AsJson
 Set-ExcelPivotField -WorkbookPath $wb -SheetName "PivotSheet" -PivotTableName "SalesPivot" -FieldName "Region" -Orientation "row" -AsJson
 Add-ExcelPivotCalculatedField -WorkbookPath $wb -SheetName "PivotSheet" -PivotTableName "SalesPivot" -Name "Profit" -Formula "=Revenue-Cost" -AsJson
+```
+
+### New v4.0.0 Usage Examples
+
+**Power Query (Get & Transform):**
+```powershell
+$m = 'let Source = Excel.CurrentWorkbook(){[Name="Table1"]}[Content] in Source'
+New-ExcelPowerQuery -WorkbookPath $wb -Name "FromTable1" -Formula $m -AsJson
+Get-ExcelPowerQuery -WorkbookPath $wb -AsJson
+Update-ExcelPowerQuery -WorkbookPath $wb -All -AsJson
+Import-ExcelPowerQueryToTable -WorkbookPath $wb -SheetName "Sheet1" -QueryName "FromTable1" -Destination "A1" -AsJson
+```
+
+**Data connections & Data Model:**
+```powershell
+Update-ExcelDataConnection -WorkbookPath $wb -All -AsJson
+Add-ExcelModelMeasure -WorkbookPath $wb -MeasureName "Total Sales" -TableName "Sales" -Formula "SUM(Sales[Amount])" -FormatType Currency -AsJson
+```
+
+**Slicers, timelines, what-if, styles:**
+```powershell
+New-ExcelSlicer -WorkbookPath $wb -SheetName "Dash" -SourceName "SalesPivot" -SourceField "Region" -AsJson
+Set-ExcelTimelineRange -WorkbookPath $wb -Name "Timeline_OrderDate" -StartDate 2026-01-01 -EndDate 2026-06-30 -AsJson
+Invoke-ExcelGoalSeek -WorkbookPath $wb -SheetName "Model" -TargetCell "C10" -TargetValue 1000 -ChangingCell "B2" -AsJson
+New-ExcelStyle -WorkbookPath $wb -Name "Money" -NumberFormat "$#,##0.00" -Bold $true -AsJson
+```
+
+**Dynamic arrays, data prep, threaded comments:**
+```powershell
+Set-ExcelFormula2 -WorkbookPath $wb -SheetName "Sheet1" -Range "D1" -Formula "=SORT(UNIQUE(A1:A100))" -AsJson
+Split-ExcelColumn -WorkbookPath $wb -SheetName "Sheet1" -Range "A1:A100" -Delimiter comma -AsJson
+Add-ExcelThreadedComment -WorkbookPath $wb -SheetName "Sheet1" -Range "A1" -Text "Please verify" -AsJson
 ```
 
 ## Rules
