@@ -77,6 +77,30 @@ New-ExcelChart -WorkbookPath $wb -SheetName "Data" -SourceRange "A1:B10" -ChartT
 Close-ExcelWorkbook
 ```
 
+### Dependency & data graph
+
+For questions about **how the workbook is wired together** — relationships, dependencies, impact,
+lineage, or orphaned/unused objects — query the graph instead of eyeballing formulas:
+
+```powershell
+# Build the graph once (writes graph.json + index.html to <workbook-folder>\excel-graph-out\)
+Export-ExcelGraph -WorkbookPath $wb -FormulaMode Both
+
+# Then query it — these AUTO-LOCATE <workbook-folder>\excel-graph-out\graph.json, so no re-scan:
+Get-ExcelGraphQuery -Action summary   -WorkbookPath $wb -AsJson
+Get-ExcelGraphQuery -Action neighbors -WorkbookPath $wb -Node "table:Orders" -Depth 2 -AsJson
+Get-ExcelGraphQuery -Action impact    -WorkbookPath $wb -Node "table:Customers" -AsJson
+Get-ExcelGraphQuery -Action orphans   -WorkbookPath $wb -AsJson
+```
+
+- **Always try `Get-ExcelGraphQuery -WorkbookPath $wb` first.** If a graph was already exported next
+  to the workbook it answers instantly with no Excel/COM. If it reports the graph is missing, run
+  `Export-ExcelGraph` once, then query. Re-export only after the workbook's structure changes.
+- The **data layer** surfaces inferred/declared foreign keys and primary keys — `-Action summary`
+  reports `datamodel-fk` / `lookup-fk` / `inferred-fk` counts. Open `excel-graph-out\index.html`
+  for the interactive Structure/Data view and report panels (inferred-FK candidates, tables without
+  relationships, high fan-in objects, unused named ranges).
+
 ## Key ExcelPOSH Functions for Analysis
 
 | Category | Functions |
@@ -87,6 +111,7 @@ Close-ExcelWorkbook
 | **Formulas & calculations** | `Invoke-ExcelEvaluate`, `Invoke-ExcelFunction`, `Invoke-ExcelCalculate`, `Set-ExcelPerformanceMode` |
 | **Analysis outputs** | `New-ExcelPivotTable`, `Update-ExcelPivotTable`, `New-ExcelChart`, `Set-ExcelChart`, `Export-ExcelChart` |
 | **Workbook management** | `Save-ExcelWorkbook`, `Copy-ExcelWorkbook`, `Close-ExcelWorkbook` |
+| **Dependency & data graph** | `Export-ExcelGraph`, `Get-ExcelGraphQuery`, `Import-ExcelGraph` |
 
 For more complex workbook automation or VBA-driven features, hand off to the `@excel-dev` agent; this agent stays focused on analysis and reporting.
 

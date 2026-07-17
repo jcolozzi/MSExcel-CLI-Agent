@@ -33,6 +33,20 @@ Get-ExcelWorkbookInfo -WorkbookPath $wb -AsJson
 Get-ExcelWorksheet -WorkbookPath $wb -AsJson
 ```
 
+**Map dependencies & analyze impact before editing:**
+```powershell
+# Build a structure + data-relationship graph (graph.json + index.html in <wb-folder>\excel-graph-out\)
+Export-ExcelGraph -WorkbookPath $wb -FormulaMode Both
+# Query it — auto-locates <wb-folder>\excel-graph-out\graph.json, so no re-scan:
+Get-ExcelGraphQuery -Action impact    -WorkbookPath $wb -Node "table:Customers" -AsJson   # what breaks if I change it?
+Get-ExcelGraphQuery -Action neighbors -WorkbookPath $wb -Node "sheet:Data" -AsJson
+Get-ExcelGraphQuery -Action summary   -WorkbookPath $wb -AsJson
+```
+> Before renaming or deleting a sheet, table, or named range, run an `impact` query so you don't
+> break dependent formulas, charts, pivots, or VBA. `Get-ExcelGraphQuery -WorkbookPath $wb` finds an
+> existing graph automatically; if it says the graph is missing, run `Export-ExcelGraph` first, then
+> re-export after structural edits.
+
 **Read and write cell data:**
 ```powershell
 Get-ExcelRange -WorkbookPath $wb -SheetName "Sheet1" -Range "A1:D10" -AsJson
@@ -201,7 +215,7 @@ Remove-ExcelSparkline -WorkbookPath $wb -SheetName "Sheet1" -CellAddress "E1:E5"
 ```
 
 
-## Available Functions (144 public)
+## Available Functions (147 public)
 
 | Category | Functions |
 |----------|-----------|
@@ -240,6 +254,7 @@ Remove-ExcelSparkline -WorkbookPath $wb -SheetName "Sheet1" -CellAddress "E1:E5"
 | **Worksheet (v4.0)** | `Set-ExcelSheetTab`, `Invoke-ExcelAutoFill`, `Set-ExcelFormula2`, `Get-ExcelFormulaDependencies`, `Convert-ExcelToLinkedDataType` |
 | **Data prep (v4.0)** | `Split-ExcelColumn`, `Import-ExcelRecordset`, `Add-ExcelSubtotal` |
 | **Workbook / Print (v4.0)** | `Set-ExcelStatusBar`, `Send-ExcelPrint` (and `Export-ExcelToPdf -Format XPS`) |
+| **Dependency & data graph (v4.1)** | `Export-ExcelGraph`, `Import-ExcelGraph`, `Get-ExcelGraphQuery` |
 
 ### New v3.0.0 Usage Examples
 
