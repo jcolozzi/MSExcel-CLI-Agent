@@ -40,13 +40,13 @@ Describe 'ExcelPOSH Module' {
             Get-Module ExcelPOSH | Should -Not -BeNullOrEmpty
         }
 
-        It 'Module version is 4.0.0' {
-            (Get-Module ExcelPOSH).Version.ToString() | Should -Be '4.0.0'
+        It 'Module version is 4.1.0' {
+            (Get-Module ExcelPOSH).Version.ToString() | Should -Be '4.1.0'
         }
 
-        It 'Exports exactly 144 public functions' {
+        It 'Exports exactly 147 public functions' {
             $exported = (Get-Module ExcelPOSH).ExportedFunctions.Keys
-            $exported.Count | Should -Be 144
+            $exported.Count | Should -Be 147
         }
     }
 
@@ -159,7 +159,9 @@ Describe 'ExcelPOSH Module' {
             'Send-ExcelPrint',
             # MetadataOps threaded comments — v4.0 (4)
             'Add-ExcelThreadedComment', 'Get-ExcelThreadedComment',
-            'Add-ExcelThreadedCommentReply', 'Remove-ExcelThreadedComment'
+            'Add-ExcelThreadedCommentReply', 'Remove-ExcelThreadedComment',
+            # Graph — v4.1 (3)
+            'Export-ExcelGraph', 'Import-ExcelGraph', 'Get-ExcelGraphQuery'
         ) {
             $script:exported | Should -Contain $_
         }
