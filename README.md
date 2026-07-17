@@ -26,7 +26,7 @@ The **ExcelPOSH** module (included) is a comprehensive PowerShell interface to t
 VS Code Copilot Chat (agent mode)
         │
         ▼
-  excel-dev agent (.md instructions)
+  excel-dev / excel-analysis agent (.github/agents/)
         │  describes which PowerShell command to run
         ▼
   ExcelPOSH module  (imported in the VS Code terminal)
@@ -35,11 +35,23 @@ VS Code Copilot Chat (agent mode)
   Microsoft Excel (.xlsx / .xlsm)
 ```
 
+- **Two agents** — `excel-dev` builds & edits workbooks; `excel-analysis` does read-first data analysis and reporting.
 - **No separate server** — the module runs directly in the VS Code integrated terminal.
 - **No Python / Node** — pure PowerShell 5.1+ on Windows.
 - **Full COM access** — everything you can do from VBA, you can do from the agent.
 - **-WhatIf / -Confirm** — all state-changing functions support PowerShell's standard risk-mitigation flags.
-- **Pester tests** — 18 test files cover every public command group.
+- **Pester tests** — 25 test files cover every public command group.
+
+## Agents
+
+Two custom agents ship in `.github/agents/` (auto-detected by VS Code Copilot Chat when this folder is in your workspace):
+
+| Agent | Use it for |
+| --- | --- |
+| **excel-dev** — *Excel Workbook Development Expert* | Building & editing workbooks: sheets, tables, formatting, formulas, charts, pivots, Power Query, the Data Model, slicers, imports/exports. |
+| **excel-analysis** — *Excel Data Analysis Expert* | Read-first data analysis & reporting: profiling, data-quality auditing, statistics, aggregation, PivotTables/charts, reproducible findings. |
+
+Both drive the same **ExcelPOSH** module — `excel-dev` writes, `excel-analysis` reads and summarizes.
 
 ## Prerequisites
 
@@ -70,42 +82,45 @@ Import-Module "C:\path\to\MSExcel-agent\ExcelPOSH\ExcelPOSH.psd1"
 Verify it loaded:
 
 ```powershell
-Get-Command -Module ExcelPOSH | Measure-Object  # should show 84
+Get-Command -Module ExcelPOSH | Measure-Object  # should show 144
 ```
 
-### 3 — Install the agent instructions
+### 3 — Use the bundled agents, instructions & skills (already in `.github/`)
 
-Choose **one** of the following:
+This repo already ships everything under `.github/` — no copying required:
 
-### Option A — User-level (available in every workspace)
+```text
+.github/
+├── agents/               excel-dev.agent.md, excel-analysis.agent.md
+├── instructions/excel/   excel-posh + vba-naming guardrails (auto-applied)
+└── skills/               excel-workbook-analysis, excel-workbook-planning,
+                         excel-vba-reserved-words, prd
+```
 
-Copy both `.md` files from the repo root to:
+**Workspace-level (recommended):** open the cloned repo (or any workspace whose root contains this `.github/` folder) in VS Code. Copilot Chat auto-detects the agents, instructions, and skills — nothing to install.
+
+**User-level (optional):** to make the agents available in *every* workspace, copy the files from `.github/agents/` (and, if you want them, `.github/instructions/` and `.github/skills/`) into:
 
 ```text
 C:\Users\%USERNAME%\AppData\Roaming\Code\User\prompts\
 ```
 
-### Option B — Workspace-level (scoped to this project)
+### 4 — Point the agents at your ExcelPOSH path
 
-Copy both `.md` files into a `.github\agents\` folder in your workspace root. VS Code automatically detects any `.md` files in that folder as custom agents.
+The agent and instruction files import ExcelPOSH by absolute path. Update it to where you cloned the repo in each of:
 
-> **Note:** VS Code detects any `.md` files in the `.github/agents/` folder of your workspace as custom agents.
-
-### 4 — Update the module path inside the agent files
-
-Open each `.md` agent file and replace the placeholder path with the actual path to `ExcelPOSH.psd1` on your machine:
+- `.github/agents/excel-dev.agent.md`
+- `.github/agents/excel-analysis.agent.md`
+- `.github/instructions/excel/excel-posh.instructions.md`
 
 ```text
-# Before
-Import-Module "C:\path\to\ExcelPOSH\ExcelPOSH.psd1"
-
-# After (example)
-Import-Module "C:\Projects\MSExcel-agent\ExcelPOSH\ExcelPOSH.psd1"
+# Replace this line's path in each file
+Import-Module "C:\path\to\MSExcel-agent\ExcelPOSH\ExcelPOSH.psd1"
 ```
 
-### 5 — Select the agent and start prompting
+### 5 — Select an agent and start prompting
 
-In VS Code Copilot Chat, click the agent picker and choose **excel-dev**. Open (or have the agent open) an `.xlsx` or `.xlsm` file, then start describing what you want.
+In VS Code Copilot Chat, open the agent picker and choose **excel-dev** (build/edit) or **excel-analysis** (analyze/report). Open (or have the agent open) an `.xlsx` / `.xlsm` file, then describe what you want.
 
 ## Usage examples
 
@@ -121,42 +136,28 @@ In VS Code Copilot Chat, click the agent picker and choose **excel-dev**. Open (
 | "Sort the data by Date descending" | `Sort-ExcelRange` |
 | "Create a pivot table from the data" | `New-ExcelPivotTable` |
 | "Export the current sheet to PDF" | `Export-ExcelToPdf` |
+| "Profile this workbook and flag data-quality issues" *(excel-analysis)* | `Get-ExcelWorkbookInfo`, `Get-ExcelSpecialCells`, `Remove-ExcelDuplicates` |
+| "Summarize sales by region with a PivotTable" *(excel-analysis)* | `New-ExcelPivotTable`, `Invoke-ExcelFunction` |
 | "What would happen if I created a new worksheet? (dry run)" | `New-ExcelWorksheet -WhatIf` |
 
 ## Project structure
 
 ```text
 MSExcel-agent/
-├── ExcelPOSH/              # PowerShell module (the engine)
-│   ├── ExcelPOSH.psd1      # Module manifest (v1.0.0, PS 5.1+, Desktop + Core)
-│   ├── ExcelPOSH.psm1      # Module loader
-│   ├── Public/             # 18 files — one per command category
-│   │   ├── WorkbookOps.ps1
-│   │   ├── WorksheetOps.ps1
-│   │   ├── TableOps.ps1
-│   │   ├── FormattingOps.ps1
-│   │   ├── MetadataOps.ps1
-│   │   ├── FilterSortOps.ps1
-│   │   ├── ConditionalFormatOps.ps1
-│   │   ├── DataValidationOps.ps1
-│   │   ├── ViewOps.ps1
-│   │   ├── HyperlinkOps.ps1
-│   │   ├── ClipboardOps.ps1
-│   │   ├── PrintOps.ps1
-│   │   ├── ImageShapeOps.ps1
-│   │   ├── PivotTableOps.ps1
-│   │   ├── ChartOps.ps1
-│   │   ├── ImportOps.ps1
-│   │   └── SparklineOps.ps1
-│   └── Private/            # Internal helpers (COM session, utilities, etc.)
-├── Tests/                  # Pester test suite — 18 test files
-│   ├── ExcelPOSH.Module.Tests.ps1
-│   ├── WorkbookOps.Tests.ps1
-│   ├── WorksheetOps.Tests.ps1
-│   ├── TableOps.Tests.ps1
-│   ├── FormattingOps.Tests.ps1
-│   └── ...
-├── excel-dev.md            # Agent instructions (the Copilot Chat prompt)
+├── .github/                     # Copilot Chat customizations (auto-detected)
+│   ├── agents/                  # excel-dev.agent.md, excel-analysis.agent.md
+│   ├── instructions/excel/      # excel-posh + vba-naming guardrails
+│   ├── skills/                  # workbook-analysis, workbook-planning, reserved-words, prd
+│   └── hooks/                   # optional session hooks (auto-commit, logging)
+├── ExcelPOSH/                   # PowerShell module (the engine)
+│   ├── ExcelPOSH.psd1           # Module manifest (PS 5.1+, Desktop + Core)
+│   ├── ExcelPOSH.psm1           # Module loader + COM constants
+│   ├── Public/                  # 24 files — one per command category
+│   │   ├── WorkbookOps.ps1, WorksheetOps.ps1, TableOps.ps1, FormattingOps.ps1
+│   │   ├── FilterSortOps.ps1, PivotTableOps.ps1, ChartOps.ps1, ImportOps.ps1, ...
+│   │   └── PowerQueryOps.ps1, DataConnection.ps1, DataModelOps.ps1, SlicerOps.ps1
+│   └── Private/                 # Internal helpers (COM session, utilities)
+├── Tests/                       # Pester suite — 25 test files (900+ tests)
 └── README.md
 ```
 
